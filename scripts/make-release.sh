@@ -32,4 +32,5 @@ popd
 cd "${DEST_DIR}"
 sha256sum "${LINUX_GZ}" "${MAC_GZ}" >SHA256SUMS
 
-gh release create --draft -F "${PROJ_ROOT}"/ChangeLog.md -t "${RELEASE}" "${RELEASE}" SHA256SUMS "${MAC_GZ}" "${LINUX_GZ}"
+gh release create --draft -F "${PROJ_ROOT}"/ChangeLog.md -t "${RELEASE}" \
+  "v${RELEASE}" SHA256SUMS "${MAC_GZ}" "${LINUX_GZ}"
