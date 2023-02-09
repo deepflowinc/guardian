@@ -502,7 +502,7 @@ Example workflow:
       - uses: haskell/actions/setup@v2
         with:
           ghc-version: 9.0.2  # Install needed version of ghc
-      - uses: deepflowinc/guardian/action@0.4.0.0
+      - uses: deepflowinc/guardian/action@v0.4.0.0
         name: Check with guardian
         with:
           backend: cabal    # auto, cabal, or stack; auto if omitted
@@ -526,4 +526,3 @@ See [CONTRIBUTING.md][CONTRIBUTING] for more details.
 ## Copyright
 
 (c) 2021-2023, DeepFlow Inc.
-
