@@ -254,6 +254,12 @@ jobs:
         fi
     - name: Checkout
       uses: actions/checkout@v3
+    - name: Setup Haskell
+      uses: haskell/actions/setup@v2
+      with:
+        ghc-version: '9.0.2'
+        cabal-version: "3.8.1.0"
+        install-stack: false
     - name: Check version
       continue-on-error: false
       run: |

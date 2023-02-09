@@ -3,9 +3,7 @@ set -euo pipefail
 
 RELEASE=${1}
 
-cabal configure --with-compiler ghc
-cabal update
-cabal build --dry-run
+cabal v2-build --dry-run
 VERSION="$(jq -r '.["install-plan"][] | select(.["pkg-name"] == "guardian") | .["pkg-version"]' dist-newstyle/cache/plan.json | uniq)"
 
 if [[ "${VERSION}" = "${RELEASE}" ]]; then
