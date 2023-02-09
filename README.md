@@ -4,6 +4,7 @@
   + [Dependency Inversion Principle](#dependency-inversion-principle)
   + [The emergence of Guardian - package dependency domain isolation in practice](#the-emergence-of-guardian---package-dependency-domain-isolation-in-practice)
   + [Summary](#summary)
+- [Installation](#installation)
 - [Usage](#usage)
   + [Actual validation logic](#actual-validation-logic)
   + [Syntax of `dependency-domains.yaml`](#syntax-of-dependency-domainsyaml)
@@ -266,6 +267,20 @@ There are several possibilities in the design of actual DAG of domains, we recom
 - Use dependency domain constraints as a guideline for the design of the overall monorepo.
   + It guides us in making out the "correct" place to put new packages/features.
   + The number of exception rules indicates the code smell.
+
+## Installation
+
+You can download prebuilt binaries for macOS and Linux from [Release](https://github.com/deepflowinc/guardian/releases/latest).
+
+You can also use [GitHub Action](#github-actions) in your CI.
+
+To build from source, we recommend using `cabal-install >= 3.8`:
+
+```sh
+git clone git@github.com/deepflowinc/guardian.git
+cd guardian
+cabal install
+```
 
 ## Usage
 
