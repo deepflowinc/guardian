@@ -1,0 +1,16 @@
+name: A1
+
+dependencies:
+- base
+
+library:
+  source-dirs: src
+  dependencies:
+  - C
+
+benchmarks:
+  A1-bench:
+    source-dirs: bench
+    main: bench.hs
+    dependencies: 
+    - A2

@@ -1,0 +1,32 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.34.4.
+--
+-- see: https://github.com/sol/hpack
+
+name:           A2
+version:        0.0.0
+build-type:     Simple
+
+library
+  other-modules:
+      Paths_A2
+  hs-source-dirs:
+      src
+  build-depends:
+      C
+    , base
+  default-language: Haskell2010
+
+test-suite A1-test
+  type: exitcode-stdio-1.0
+  main-is: test.hs
+  other-modules:
+      Paths_A2
+  hs-source-dirs:
+      test
+  build-depends:
+      A2
+    , B1
+    , base
+  default-language: Haskell2010

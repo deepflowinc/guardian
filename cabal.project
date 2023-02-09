@@ -1,0 +1,9 @@
+packages: .
+static: True
+executable-static: True
+executable-dynamic: False
+
+allow-newer: validation-selective:selective
+
+package cryptonite
+  flags: -integer-gmp

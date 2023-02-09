@@ -1,0 +1,21 @@
+default_install_hook_types:
+- pre-commit
+- post-checkout
+- pre-commit
+repos:
+# Prohibits commits to the default branch
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.2.0
+  hooks:
+  - id: no-commit-to-branch
+    args: [--branch, main]
+- repo: local
+  hooks:
+  - id: pre-commit-run-hpack
+    name: Generates .cabal files with hpack
+    always_run: true
+    verbose: true
+    stages: [commit]
+    language: system
+    pass_filenames: false
+    entry: bash -c "(command -v hpack >/dev/null && hpack .) || echo '[warn] no hpack found' >&2"

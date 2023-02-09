@@ -1,0 +1,6 @@
+resolver: lts-19.19
+packages:
+- A1
+- A2
+- B1
+- C

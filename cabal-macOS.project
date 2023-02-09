@@ -1,0 +1,6 @@
+import: cabal.project.freeze
+packages: .
+executable-static: False
+shared: True
+static: False
+allow-newer: stack:Cabal, validation-selective:selective

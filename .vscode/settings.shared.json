@@ -1,0 +1,13 @@
+{
+  "emeraldwalk.runonsave": {
+    "commands": [
+      { "match": "package.yaml$", "cmd": "hpack", "isAsync": true },
+      { "match": "\\.hs$", "cmd": "hpack", "isAsync": true }
+    ]
+  },
+  "files.associations": {
+    "cabal*.project": "cabal",
+    "cabal*.project.local": "cabal",
+    "cabal*.project.freeze": "cabal"
+  }
+}

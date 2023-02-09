@@ -1,0 +1,22 @@
+domains:
+  A: 
+    depends_on: [C]
+    packages: 
+    - A1
+    - package: A2
+      exception: # Exception rules for package A2
+        depends_on:
+        - package: B1
+  B: 
+    packages: [B1]
+    depends_on: [C]
+  C: 
+    packages: [C]
+    depends_on: []
+
+components:
+  tests: true
+  benchmarks: false
+
+cabal:
+  update: hackage.haskell.org,2023-02-03T00:00:00Z

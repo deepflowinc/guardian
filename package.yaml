@@ -1,0 +1,90 @@
+name:                guardian
+version:             0.4.0.0
+license:             BSD-3-Clause
+author:              "DeepFlow, Inc."
+maintainer:          "DeepFlow, Inc."
+copyright:           "(c) 2021-2023, DeepFlow, Inc."
+
+extra-source-files:
+- README.md
+- ChangeLog.md
+
+# Metadata used when publishing your package
+# synopsis:            Short description of your package
+# category:            Math
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description: The border guardian for your package dependencies
+
+ghc-options:
+- -Wall
+
+data-dir: data
+
+dependencies:
+- base >= 4.7 && < 5
+- text
+
+library:
+  source-dirs: src
+  dependencies:
+  - aeson
+  - algebraic-graphs
+  - array
+  - Cabal
+  - Cabal-syntax
+  - cabal-install >= 3.8
+  - containers
+  - dlist
+  - generic-lens
+  - githash
+  - hashable
+  - indexed-traversable
+  - indexed-traversable-instances
+  - microlens
+  - optparse-applicative
+  - path
+  - path-io
+  - rio
+  - selective
+  - semigroups
+  - stack >= 2.9
+  - template-haskell
+  - transformers
+  - unordered-containers
+  - validation-selective
+  - vector
+  - yaml
+
+tests:
+  guardian-test:
+    main: Spec.hs
+    source-dirs: test
+    ghc-options:
+    - -O
+    build-tools:
+    - tasty-discover
+    dependencies:
+    - algebraic-graphs
+    - bytestring
+    - containers
+    - guardian
+    - path
+    - path-io
+    - rio
+    - tasty
+    - tasty-hunit
+    - text
+    - unordered-containers
+    - validation-selective
+
+executables:
+  guardian:
+    source-dirs: app
+    main: Main.hs
+    ghc-options:
+    - -O
+    dependencies:
+    - guardian

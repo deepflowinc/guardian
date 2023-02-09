@@ -1,0 +1,51 @@
+name: Lint by Guardian
+description: |
+  Validates dependency boundary constraint by guardian.
+
+inputs:
+  version:
+    description: The version of guardian.
+    default: 'latest'
+    required: false
+  backend:
+    description: Project backend (stack, cabal, or auto)
+    default: 'auto'
+    required: false
+  config:
+    description: |
+      Guardian config file (default: dependency-domains.yaml)
+    required: false
+    default: ""
+  target:
+    description: "Target directory (default: .)"
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+  - name: Setup env
+    shell: bash
+    run: |
+      echo "${{ github.action_path }}" >> "${GITHUB_PATH}"
+  - name: Download guardian binary
+    shell: bash
+    continue-on-error: false
+    id: download
+    run: |
+      download-guardian.sh "${{ inputs.version }}" "${{ github.action_path }}"
+  - name: Apply guardian
+    continue-on-error: false
+    shell: bash
+    run: |
+      set -euo pipefail
+      declare -a CONFIG=()
+      if [ -n "${{inputs.config}}" ]; then
+        CONFIG=(--config "${{inputs.config}}")
+      fi
+      declare -a TARGET=()
+      if [ -n "${{inputs.target}}" ]; then
+        TARGET=("${{inputs.target}}")
+      fi
+      guardian ${{inputs.backend}} "${CONFIG[@]}" "${TARGET[@]}"
+

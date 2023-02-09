@@ -1,0 +1,12 @@
+domains:
+  A: {packages: [A1, A2], depends_on: [C]}
+  B: {packages: [B1], depends_on: [C]}
+  C: {packages: [C], depends_on: []}
+
+components:
+  tests: false
+  benchmarks: false
+
+cabal:
+  projectFile: cabal-no-A1.project
+
