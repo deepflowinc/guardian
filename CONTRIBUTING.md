@@ -46,5 +46,7 @@ To get PRs merged, following criteria must be met:
   + `Fourmolu` - to enforce consistent formatting
   + `Build` and `Test` for macOS and Linux - make sure we always have working binaries
 - It is strongly recommended to write commit messages obeying [Conventional Commit][convcom] guidline.
+- We also strongly recommend to [sign your commits][commit-sign].
 
 [convcom]: https://www.conventionalcommits.org
+[commit-sign]: https://docs.github.com/en/authentication/managing-commit-signature-verification/signing-commits
