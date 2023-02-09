@@ -254,6 +254,10 @@ jobs:
         fi
     - name: Checkout
       uses: actions/checkout@v3
+    - name: Check version
+      continue-on-error: false
+      run: |
+        ./scripts/check-version.sh "${RELEASE}"
     - name: Download Artifact(s)
       id: download
       uses: actions/download-artifact@v3
