@@ -486,7 +486,8 @@ Prerequisites:
 - OS running the action must be either Linux or macOS with the following executables in PATH:
   + `sha256sum`
   + `tar`
-  + `gh`
+  + `curl`
+  + `jq`
 - If you are using the Cabal backend and `with-compiler` is specified explicitly,
   the corresponding version of GHC must be in the PATH.
 
