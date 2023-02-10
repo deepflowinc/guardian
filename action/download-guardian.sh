@@ -35,7 +35,7 @@ if [ "${RELEASE}" = "latest" ]; then
   RELEASE=$(${GH} release list -L1 | cut -f1)
 fi
 
-if ${GH} release view "v${RELEASE}" >/dev/null 2>&1; then
+if ${GH} release view "v${RELEASE}"; then
   log "Downloading guardian version: ${RELEASE}..."
   mkdir -p "${DOWNLOAD_PATH}"
   TARBALL="guardian-${RELEASE}-x86_64-${OS}.tar.gz"
