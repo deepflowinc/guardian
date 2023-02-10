@@ -15,7 +15,7 @@ popd () {
 
 [ -z "${1}" ] && log "Usage: download-guardian.sh (RELEASE) [DOWNLOAD_DIR]" && exit 1
 
-set -euo pipefail
+set -euxo pipefail
 RELEASE="${1}"
 DOWNLOAD_PATH="${2:-guardian-$(date +%Y%m%d-%H%M%S)}"
 
