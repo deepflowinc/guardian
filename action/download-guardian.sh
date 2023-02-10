@@ -30,8 +30,7 @@ case "${UNAME}" in
     exit 1;
 esac
 
-# FIXME: guardian を公開したらここを直す
-GH="gh -R deepflowinc/guardian-internal"
+GH="gh -R deepflowinc/guardian"
 if [ "${RELEASE}" = "latest" ]; then
   RELEASE=$(${GH} release list -L1 | cut -f1)
 fi
