@@ -41,7 +41,7 @@ if ${GH} release view "v${RELEASE}" >/dev/null 2>&1; then
   TARBALL="guardian-${RELEASE}-x86_64-${OS}.tar.gz"
   pushd "${DOWNLOAD_PATH}"
     ${GH} release download >/dev/null 2>&1 \
-      "${RELEASE}" -p "${TARBALL}" -p  "SHA256SUMS" -p "SHA256SUMS.asc"
+      "v${RELEASE}" -p "${TARBALL}" -p  "SHA256SUMS" -p "SHA256SUMS.asc"
     log "Downloaded."
     # shared runner lacks GPG...
     # gpg --verify SHA256SUMS.asc >/dev/null 2>&1
