@@ -2,6 +2,7 @@ import: cabal.project.freeze
 packages: .
 static: True
 executable-static: True
+optimization: True
 shared: True
 executable-dynamic: False
 allow-newer: stack:Cabal, validation-selective:selective

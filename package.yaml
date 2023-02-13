@@ -63,8 +63,6 @@ tests:
   guardian-test:
     main: Spec.hs
     source-dirs: test
-    ghc-options:
-    - -O
     build-tools:
     - tasty-discover
     dependencies:
@@ -85,7 +83,5 @@ executables:
   guardian:
     source-dirs: app
     main: Main.hs
-    ghc-options:
-    - -O
     dependencies:
     - guardian

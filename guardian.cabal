@@ -83,7 +83,7 @@ executable guardian
       Paths_guardian
   hs-source-dirs:
       app
-  ghc-options: -Wall -O
+  ghc-options: -Wall
   build-depends:
       base >=4.7 && <5
     , guardian
@@ -104,7 +104,7 @@ test-suite guardian-test
       Paths_guardian
   hs-source-dirs:
       test
-  ghc-options: -Wall -O
+  ghc-options: -Wall
   build-tool-depends:
       tasty-discover:tasty-discover
   build-depends:
