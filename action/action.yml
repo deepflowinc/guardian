@@ -27,13 +27,13 @@ runs:
   - name: Setup env
     shell: bash
     run: |
-      echo "${{ github.action_path }}" >> "${GITHUB_PATH}"
+      echo "${GITHUB_ACTION_PATH}" >> "${GITHUB_PATH}"
   - name: Download guardian binary
     shell: bash
     continue-on-error: false
     id: download
     run: |
-      download-guardian.sh "${{ inputs.version }}" "${{ github.action_path }}"
+      download-guardian.sh "${{ inputs.version }}" "${GITHUB_ACTION_PATH}"
   - name: Apply guardian
     continue-on-error: false
     shell: bash

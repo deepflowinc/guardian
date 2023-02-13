@@ -6,7 +6,11 @@ cabal-version: 2.2
 
 name:           guardian
 version:        0.4.0.0
-description:    The border guardian for your package dependencies
+synopsis:       The border guardian for your package dependencies
+description:    Guardian secures your Haskell monorepo package dependency boundary. Please read [README.md](https://github.com/deepflowinc/guardian#readme) for more details.
+category:       Development
+homepage:       https://github.com/deepflowinc/guardian#readme
+bug-reports:    https://github.com/deepflowinc/guardian/issues
 author:         DeepFlow, Inc.
 maintainer:     DeepFlow, Inc.
 copyright:      (c) 2021-2023, DeepFlow, Inc.
@@ -17,6 +21,10 @@ extra-source-files:
     README.md
     ChangeLog.md
 data-dir:       data
+
+source-repository head
+  type: git
+  location: https://github.com/deepflowinc/guardian
 
 library
   exposed-modules:

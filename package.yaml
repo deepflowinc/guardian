@@ -4,19 +4,20 @@ license:             BSD-3-Clause
 author:              "DeepFlow, Inc."
 maintainer:          "DeepFlow, Inc."
 copyright:           "(c) 2021-2023, DeepFlow, Inc."
+github:              deepflowinc/guardian
 
 extra-source-files:
 - README.md
 - ChangeLog.md
 
 # Metadata used when publishing your package
-# synopsis:            Short description of your package
-# category:            Math
+synopsis:            The border guardian for your package dependencies
+category:            Development
 
-# To avoid duplicated efforts in documentation and dealing with the
-# complications of embedding Haddock markup inside cabal files, it is
-# common to point users to the README.md file.
-description: The border guardian for your package dependencies
+description: 
+  Guardian secures your Haskell monorepo package dependency boundary.
+  Please read [README.md](https://github.com/deepflowinc/guardian#readme) for more details.
+
 
 ghc-options:
 - -Wall

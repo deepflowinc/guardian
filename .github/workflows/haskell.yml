@@ -254,6 +254,10 @@ jobs:
         fi
     - name: Checkout
       uses: actions/checkout@v3
+    - name: Workaround runner image issue
+      if: ${{ runner.os == 'Linux' }}
+      # https://github.com/actions/runner-images/issues/7061
+      run: sudo chown -R $USER /usr/local/.ghcup
     - name: Setup Haskell
       uses: haskell/actions/setup@v2
       with:
@@ -269,8 +273,17 @@ jobs:
       uses: actions/download-artifact@v3
       with:
         path: ${{ github.workspace }}/artifacts
-    - name: Make Release
+    - name: Make Release on GitHub
       env:
         GH_TOKEN: ${{ github.token }}
       run: |
         ./scripts/make-release.sh "${RELEASE}" "${{ steps.download.outputs.download-path }}"
+    - name: Creates Tarball
+      run: cabal sdist
+    - name: Upload to Hackage
+      uses: haskell-actions/hackage-publish@v1
+      with:
+        hackageToken: ${{ secrets.HACKAGE_ACCESS_TOKEN }}
+        publish: false
+        packagesPath: dist-newstyle/sdist
+
