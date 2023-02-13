@@ -279,8 +279,7 @@ jobs:
       run: |
         ./scripts/make-release.sh "${RELEASE}" "${{ steps.download.outputs.download-path }}"
     - name: Creates Tarball
-      run: |
-        cabal sdist guardian
+      run: cabal sdist
     - name: Upload to Hackage
       uses: haskell-actions/hackage-publish@v1
       with:
