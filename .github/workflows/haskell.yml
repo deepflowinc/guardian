@@ -193,7 +193,7 @@ jobs:
       with:
         ghc-version: '9.0.2'
         cabal-version: "3.8.1.0"
-        install-stack: false
+        enable-stack: false
     - name: Check version
       continue-on-error: false
       run: |
