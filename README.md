@@ -326,6 +326,7 @@ Guardian configuration file consists of the following top-level sections:
 | Section   | Description |
 | --------- | ----------- |
 | `domains` | **Required**. Definition of Dependency Domains (see [Domain Definition](#domain-definition)) |
+| `wildcards` | _Optional_. If `true`, package name can contain wildcards `*`, which matches arbitrary string. Note that even if this option is set, you CANNOT use `*` in exception rule targets. (Default: `false`) |
 | `components` | _Optional_. Configuration whether track test/benchmark dependencies as well (see [Component Section](#component-section)) |
 | `cabal` | _Optional_. Cabal-specific configurations. (see [Cabal specific settings](#cabal-specific-settings)) |
 | `stack` | _Optional_. Stack-specific configurations. (see [stack specific settings](#stack-specific-settings)) |
