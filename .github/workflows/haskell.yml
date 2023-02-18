@@ -96,7 +96,8 @@ jobs:
           cabal-dist-${{ matrix.os }}-${{ matrix.ghc }}-${{ hashFiles('cabal.project.freeze', 'cabal-${{matrix.os}}.project') }}-
           cabal-dist-${{ matrix.os }}-${{ matrix.ghc }}-
     - name: "Update (not-linux)"
-      run: '${{ env.cabal }} v2-update'
+      run: |
+        ${{ env.cabal }} v2-update 'hackage.haskell.org,2023-02-13T02:00:06Z'
     - name: "Build (non-Linux)"
       run: '${{ env.cabal }} v2-build --enable-tests'
     - name: 'Collect binaries'
@@ -168,7 +169,8 @@ jobs:
         cabal-version: "3.8.1.0"
         install-stack: false
     - name: "cabal update"
-      run: '${{ env.cabal }} v2-update'
+      run: |
+        ${{ env.cabal }} v2-update 'hackage.haskell.org,2023-02-13T02:00:06Z'
     - name: Configure
       run: ${{ env.cabal }} v2-configure --enable-tests
     - name: Build all
