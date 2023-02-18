@@ -46,7 +46,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Workaround runner image issue
-      if: ${{ runner.os == 'Linux' }}
+      if: ${{ matrix.os == 'Linux' }}
       # https://github.com/actions/runner-images/issues/7061
       run: sudo chown -R "${USER}" /usr/local/.ghcup
     - uses: haskell/actions/setup@v2
@@ -55,87 +55,112 @@ jobs:
         ghc-version: 9.0.2
     - run: cabal check
 
-  build-macOS:
-    name: Build (macOS)
-    runs-on: macOS-latest
+  build:
+    name: Build
+    strategy:
+      matrix:
+        os: [macOS]
+        ghc: ['9.0.2']
+        image: ['']
+        include: 
+        - {os: 'ubuntu', image: 'fpco/alpine-haskell-stack:9.2.5', ghc: '9.0.2'}
+      fail-fast: false
+    env:
+      bin-artifacts: "${{ github.workspace }}/bin-artifacts"
+    runs-on: ${{matrix.os}}-latest
+    container:
+      image: ${{ matrix.image }}
     steps:
     - name: Checkout
       uses: actions/checkout@v3
-    - name: Build
-      uses: ./.github/actions/build
-
-  build-linux:
-    name: Build (Linux)
-    container:
-      image: fpco/alpine-haskell-stack:9.2.5
-    runs-on: ubuntu-latest
-    steps:
-    - name: Setup envvars
+    - name: Setup environment (Linux)
+      if: ${{ runner.os == 'Linux' }}
       run: |
+        apk add sudo tar zstd xz
         echo "${HOME}/.local/bin" >> "${GITHUB_PATH}"
         echo "${HOME}/.cabal/bin" >> "${GITHUB_PATH}"
         echo "${HOME}/.ghcup/bin" >> "${GITHUB_PATH}"
-    - name: "Installs missing deps"
-      run: apk add sudo tar zstd xz
-    - name: Checkout
-      uses: actions/checkout@v3
-    - name: Build
-      uses: ./.github/actions/build
-
-  test-macOS:
-    name: Test (macOS)
-    needs: [build-macOS]
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [macOS]
-        ghc: [9.0.2]
-    env:
-      cabal: "cabal --project-file=cabal-${{ matrix.os }}.project"
-      artifact-name: "bins-macOS"
-    runs-on: ${{ matrix.os }}-latest
-    steps:
-    - uses: actions/checkout@v3
-    - uses: actions/download-artifact@v3
-      id: download
-      with:
-        name: ${{ env.artifact-name }}
-    - uses: haskell/actions/setup@v2
-      with:
-        ghc-version: 9.0.2
-        cabal-version: 3.8.1.0
-        stack-version: 2.9.3
-    - name: Setup permission
-      run: 'chmod +x "${{steps.download.outputs.download-path}}/guardian-test"'
-    - name: Installs test tool dependencies
+    - name: Setup environment (macOS)
+      if: ${{ matrix.os == 'macOS' }}
       run: |
         brew install pkg-config
-        cabal install graphmod
-    - name: Run tests
+    - name: Setup Haskell
+      uses: haskell/actions/setup@v2
+      with:
+        ghc-version: ${{ matrix.ghc }}
+        cabal-version: 3.8.1.0
+        enable-stack: false
+    - name: Cache Global Cabal
+      uses: actions/cache@v3
+      with:
+        path: '~/.cabal/store'
+        key: |
+          cabal-global-${{ matrix.os }}-${{ matrix.ghc }}-${{ hashFiles('cabal.project.freeze') }}
+        restore-keys: |
+          cabal-global-${{ matrix.os }}-${{ matrix.ghc }}-
+    - name: Cache dist-newstyle
+      uses: actions/cache@v3
+      with:
+        path: 'dist-newstyle'
+        key: |
+          cabal-dist-${{ matrix.os }}-${{ inputs.ghc }}-${{ hashFiles('cabal.project.freeze') }}-${{ hashFiles('*.cabal') }}-${{ hashFiles('**/*.hs') }}
+        restore-keys: |
+          cabal-dist-${{ matrix.os }}-${{ inputs.ghc }}-${{ hashFiles('cabal.project.freeze', 'cabal-${{matrix.os}}.project') }}-${{ hashFiles('*.cabal') }}-
+          cabal-dist-${{ matrix.os }}-${{ inputs.ghc }}-${{ hashFiles('cabal.project.freeze', 'cabal-${{matrix.os}}.project') }}-
+          cabal-dist-${{ matrix.os }}-${{ inputs.ghc }}-
+    - name: "cabal v2-update"
+      shell: bash
+      run: >
+        cabal --project-file=${{inputs.cabal-project}}
+        v2-update 'hackage.haskell.org,2023-02-13T02:00:06Z'
+    - name: "Build"
+      shell: bash
+      run: >
+        cabal --project-file=${{inputs.cabal-project}}
+        v2-build --enable-tests
+    - name: 'Collect binaries'
+      shell: bash
       run: |
-        ${{steps.download.outputs.download-path}}/guardian-test
+        set -euxo pipefail
 
-  test-linux:
+        mkdir -p "${{env.bin-artifacts}}"
+        cabal list-bin exe:guardian | while read -r FILE; do
+          echo "COPYING: $(basename "${FILE}") (${FILE})"
+          cp "${FILE}" "${{env.bin-artifacts}}/"
+        done
+
+        cabal list-bin guardian-test | while read -r FILE; do
+          echo "COPYING: $(basename "${FILE}") (${FILE})"
+          cp "${FILE}" "${{env.bin-artifacts}}/"
+        done
+    - uses: actions/upload-artifact@v3
+      name: Upload Binary Artifacts
+      with:
+        name: bins-${{ runner.os }}
+        path: ${{ env.bin-artifacts }}
+
+  test:
     name: Test (Linux)
-    needs: [build-linux]
+    needs: [build]
     strategy:
-      fail-fast: false
       matrix:
-        os: [ubuntu]
-        ghc: [9.0.2]
-    env:
-      artifact-name: "bins-Linux"
+        os: [macOS]
+        ghc: ['9.0.2']
+        image: ['']
+        include: 
+        - {os: 'ubuntu', image: 'fpco/alpine-haskell-stack:9.2.5', ghc: '9.0.2'}
+      fail-fast: false
     runs-on: ${{ matrix.os }}-latest
     steps:
     - uses: actions/checkout@v3
     - uses: actions/download-artifact@v3
       id: download
       with:
-        name: ${{ env.artifact-name }}
+        name: bins-${{ runner.os }}
     - name: Setup permission
       run: 'chmod +x "${{steps.download.outputs.download-path}}/guardian-test"'
     - name: Workaround runner image issue
-      if: ${{ runner.os == 'Linux' }}
+      if: ${{ matrix.os == 'Linux' }}
       # https://github.com/actions/runner-images/issues/7061
       run: sudo chown -R "${USER}" /usr/local/.ghcup
     - uses: haskell/actions/setup@v2
@@ -160,7 +185,7 @@ jobs:
       ghc: 9.0.2
       tag: "${{ github.event.inputs.release_tag }}"
     runs-on: ubuntu-latest
-    needs: [build-linux, build-macOS]
+    needs: [build]
     if: >
       github.event_name == 'push'
       &&
@@ -183,7 +208,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
     - name: Workaround runner image issue
-      if: ${{ runner.os == 'Linux' }}
+      if: ${{ matrix.os == 'Linux' }}
       # https://github.com/actions/runner-images/issues/7061
       run: sudo chown -R $USER /usr/local/.ghcup
     - name: Setup Haskell
