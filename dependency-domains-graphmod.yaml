@@ -18,8 +18,9 @@ domains:
     depends_on: [adapter-base]
     packages:
     - Development.Guardian.Graph.Adapter.Cabal
-    - Development.Guardian.Graph.Adapter.Cabal.Enabled
     - Development.Guardian.Graph.Adapter.Cabal.Disabled
+    - Development.Guardian.Graph.Adapter.Cabal.Enabled
+    - Development.Guardian.Graph.Adapter.Cabal.Types
   adapter-stack:
     depends_on: [adapter-base]
     packages:
