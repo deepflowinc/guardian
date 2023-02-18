@@ -141,7 +141,7 @@ jobs:
         path: ${{ env.bin-artifacts }}
 
   test:
-    name: Test (Linux)
+    name: Test
     needs: [build]
     strategy:
       matrix:
