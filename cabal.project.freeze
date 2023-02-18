@@ -5,6 +5,7 @@
 -- Please place this file next to your .cabal file as cabal.config
 -- To only use tested packages, uncomment the following line:
 -- remote-repo: stackage-lts-20.8:http://www.stackage.org/lts-20.8
+index-state: hackage.haskell.org 2023-02-13T02:00:06Z
 with-compiler: ghc-9.0.2
 allow-older: Cabal:process
 allow-newer: validation-selective:selective
