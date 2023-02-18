@@ -228,12 +228,7 @@ instance FromJSON Dependency where
           ( withObject
               "{package: ...} or {domain: ...}"
               ( \obj ->
-                  DomainDep
-                    <$> obj
-                    .: "domain"
-                    <|> PackageDep
-                    <$> obj
-                    .: "package"
+                  DomainDep <$> obj .: "domain" <|> PackageDep <$> obj .: "package"
               )
           )
 
