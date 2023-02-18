@@ -96,8 +96,9 @@ jobs:
       with:
         path: '~/.cabal/store'
         key: |
-          cabal-global-${{ matrix.os }}-${{ matrix.ghc }}-${{ hashFiles('cabal.project.freeze') }}
+          cabal-global-${{ matrix.os }}-${{ matrix.ghc }}-${{ hashFiles('cabal.project.freeze') }}-${{ hashFiles('**/*.cabal')}}
         restore-keys: |
+          cabal-global-${{ matrix.os }}-${{ matrix.ghc }}-${{ hashFiles('cabal.project.freeze') }}-
           cabal-global-${{ matrix.os }}-${{ matrix.ghc }}-
     - name: Cache dist-newstyle
       uses: actions/cache@v3
