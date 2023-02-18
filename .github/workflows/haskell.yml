@@ -109,6 +109,7 @@ jobs:
       run: 'chmod +x "${{steps.download.outputs.download-path}}/guardian-test"'
     - name: Installs test tool dependencies
       run: |
+        brew install pkg-config
         cabal install graphmod
     - name: Run tests
       run: |
@@ -123,8 +124,7 @@ jobs:
         os: [ubuntu]
         ghc: [9.0.2]
     env:
-      cabal: "cabal --project-file=cabal-${{ matrix.os }}.project"
-      artifact-name: "bins-linux"
+      artifact-name: "bins-Linux"
     runs-on: ${{ matrix.os }}-latest
     steps:
     - uses: actions/checkout@v3

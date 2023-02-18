@@ -17,17 +17,10 @@ runs:
     bin-artifacts: "${{ github.workspace }}/bin-artifacts"
     artifact-name: "bins-${{ runner.os }}"
   steps:
-  - name: Checkout
-    uses: actions/checkout@v3
   - name: Installs pkg-config (macOS)
     if: ${{ runner.os == 'macOS' }}
     shell: bash
     run: "brew install pkg-config"
-  - name: Workaround runner image issue (Linux)
-    if: ${{ runner.os == 'Linux' }}
-    # https://github.com/actions/runner-images/issues/7061
-    shell: bash
-    run: sudo chown -R "${USER}" /usr/local/.ghcup
   - name: Setup Haskell
     uses: haskell/actions/setup@v2
     with:
