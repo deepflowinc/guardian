@@ -227,15 +227,14 @@ jobs:
         ghc-version: '9.0.2'
         cabal-version: "3.8.1.0"
         enable-stack: false
-    - name: Check version
-      continue-on-error: false
-      run: |
-        ./scripts/check-version.sh "${RELEASE}"
     - name: Download Artifact(s)
       id: download
       uses: actions/download-artifact@v3
       with:
         path: ${{ github.workspace }}/artifacts
+    - name: Check Version
+      run: |
+        ./scripts/check-version.sh "${RELEASE}" "${{ steps.download.outputs.download-path }}"
     - name: Make Release on GitHub
       env:
         GH_TOKEN: ${{ github.token }}

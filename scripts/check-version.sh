@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-RELEASE=${1}
+RELEASE="${1}"
+DOWNLOAD="${2}"
 
-cabal v2-build --dry-run
-VERSION="$(jq -r '.["install-plan"][] | select(.["pkg-name"] == "guardian") | .["pkg-version"]' dist-newstyle/cache/plan.json | uniq)"
+VERSION=$("${DOWNLOAD}/bins-Linux/guardian --numeric-version")
 
 if [[ "${VERSION}" = "${RELEASE}" ]]; then
   echo "Release version ok: ${VERSION}"
