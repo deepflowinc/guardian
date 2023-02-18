@@ -73,6 +73,7 @@ jobs:
         fetch-depth: 0
     - name: Sets zlib pkg
       run: |
+        pkg-config zlib
         echo "PKG_CONFIG_PATH=/usr/local/opt/zlib/lib/pkgconfig:${PKG_CONFIG_PATH}" >> "${GITHUB_ENV}"
     - name: Setup Haskell
       uses: haskell/actions/setup@v2
@@ -100,7 +101,6 @@ jobs:
           cabal-dist-${{ matrix.os }}-${{ matrix.ghc }}-
     - name: "Update (not-linux)"
       run: |
-        echo "${PKG_CONFIG_PATH}"
         ${{ env.cabal }} v2-update 'hackage.haskell.org,2023-02-13T02:00:06Z'
     - name: "Build (non-Linux)"
       run: '${{ env.cabal }} v2-build --enable-tests'
