@@ -36,6 +36,16 @@ flag stack
   manual: True
   default: True
 
+flag test-cabal-plan
+  description: Enables testcases for custom+cabal-plan
+  manual: True
+  default: True
+
+flag test-graphmod
+  description: Enables testcases for custom+cabal-plan
+  manual: True
+  default: True
+
 library
   exposed-modules:
       Development.Guardian.App
@@ -130,6 +140,7 @@ test-suite guardian-test
       Development.Guardian.Graph.Adapter.StackSpec
       Development.Guardian.Graph.Adapter.TestUtils
       Development.Guardian.GraphSpec
+      Development.Guardian.Test.Flags
       Paths_guardian
   autogen-modules:
       Paths_guardian
@@ -154,3 +165,7 @@ test-suite guardian-test
     , unordered-containers
     , validation-selective
   default-language: Haskell2010
+  if flag(test-cabal-plan)
+    cpp-options: -DTEST_CABAL_PLAN
+  if flag(test-graphmod)
+    cpp-options: -DTEST_GRAPHMOD

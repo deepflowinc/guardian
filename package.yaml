@@ -27,6 +27,14 @@ flags:
     description: Enables Cabal adapter
     manual: true
     default: true
+  test-cabal-plan:
+    description: Enables testcases for custom+cabal-plan
+    manual: true
+    default: true
+  test-graphmod:
+    description: Enables testcases for custom+cabal-plan
+    manual: true
+    default: true
 
 ghc-options:
 - -Wall
@@ -92,6 +100,11 @@ library:
 
 tests:
   guardian-test:
+    when:
+    - condition: flag(test-cabal-plan)
+      cpp-options: ["-DTEST_CABAL_PLAN"]
+    - condition: flag(test-graphmod)
+      cpp-options: ["-DTEST_GRAPHMOD"]
     main: Spec.hs
     source-dirs: test
     build-tools:

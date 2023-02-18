@@ -227,7 +227,7 @@ jobs:
       run: 'chmod +x "${{steps.download.outputs.download-path}}/guardian-test"'
     - name: Installs test tool dependencies
       run: |
-        cabal install graphmod cabal-plan
+        cabal install graphmod
     - name: Run tests
       run: |
         ${{steps.download.outputs.download-path}}/guardian-test
@@ -263,7 +263,7 @@ jobs:
         stack-version: 2.9.3
     - name: Installs test tool dependencies
       run: |
-        cabal install graphmod cabal-plan
+        cabal install graphmod
     - name: Run tests
       run: |
         ${{steps.download.outputs.download-path}}/guardian-test

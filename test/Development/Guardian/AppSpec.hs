@@ -15,6 +15,7 @@ import Data.Version (showVersion)
 import Development.Guardian.App
 import Development.Guardian.Flags (cabalEnabled, stackEnabled)
 import Development.Guardian.Graph.Adapter.Detection
+import Development.Guardian.Test.Flags
 import GHC.IO.Exception (ExitCode (..))
 import Path
 import Path.IO
@@ -38,7 +39,8 @@ customCases :: [TestTree]
 customCases =
   [ testGroup
       "custom adapter"
-      [ testCase "works with cabal-plan dot"
+      [ testConditional "cabal-plan" testCabalPlan
+          $ testCase "works with cabal-plan dot"
           $ withCurrentDir
             ([reldir|data|] </> [reldir|only-custom-cabal-plan|])
           $ do
@@ -46,9 +48,10 @@ customCases =
             runSimpleApp $ proc "cabal" ["v2-configure"] runProcess_
             successfully_ $
               mainWith ["custom"]
-      , testCase "works with graphmod" $
-          successfully_ $
-            mainWith ["custom", "-c", "dependency-domains-graphmod.yaml"]
+      , testConditional "graphmod" testGraphmod $
+          testCase "works with graphmod" $
+            successfully_ $
+              mainWith ["custom", "-c", "dependency-domains-graphmod.yaml"]
       , testCase "works with stack dot"
           $ withCurrentDir
             ([reldir|data|] </> [reldir|only-stack|])
@@ -94,16 +97,16 @@ cabalCases =
   ]
 
 skipIfCabalDisabled :: TestTree -> TestTree
-skipIfCabalDisabled =
-  if cabalEnabled
-    then id
-    else ignoreTestBecause "cabal adapter is disabled"
+skipIfCabalDisabled = testConditional "cabal" cabalEnabled
 
 skipIfStackDisabled :: TestTree -> TestTree
-skipIfStackDisabled =
-  if stackEnabled
+skipIfStackDisabled = testConditional "stack" stackEnabled
+
+testConditional :: String -> Bool -> TestTree -> TestTree
+testConditional label testIt =
+  if testIt
     then id
-    else ignoreTestBecause "stack adapter is disabled"
+    else ignoreTestBecause $ "Test disabled for " <> label
 
 autoCases :: [TestTree]
 autoCases =

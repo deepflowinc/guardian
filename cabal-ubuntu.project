@@ -6,3 +6,6 @@ optimization: True
 shared: True
 executable-dynamic: False
 allow-newer: stack:Cabal, validation-selective:selective
+
+package guardian
+  flags: -cabal-plan
