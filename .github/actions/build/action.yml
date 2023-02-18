@@ -9,6 +9,10 @@ inputs:
     required: false
     description: cabal.project file
     default: 'cabal-${{ runner.os }}.project'
+  cache-os:
+    required: false
+    description: os in cache key
+    default: '${{runner.os}}'
 
 runs:
   using: composite
