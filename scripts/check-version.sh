@@ -4,8 +4,10 @@ set -euo pipefail
 RELEASE="${1}"
 DOWNLOAD="${2}"
 
+GUARDIAN="${DOWNLOAD}/bins-Linux/guardian"
+chmod +x "${GUARDIAN}"
 
-VERSION=$("${DOWNLOAD}/bins-Linux/guardian" --numeric-version)
+VERSION=$("${GUARDIAN}" --numeric-version)
 
 if [[ "${VERSION}" = "${RELEASE}" ]]; then
   echo "Release version ok: ${VERSION}"
