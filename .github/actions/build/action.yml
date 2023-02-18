@@ -32,19 +32,19 @@ runs:
     with:
       path: '~/.cabal/store'
       key: |
-        cabal-global-${{ runner.os }}-${{ inputs.ghc }}-${{ hashFiles('cabal.project.freeze') }}
+        cabal-global-${{ inputs.cache-os }}-${{ inputs.ghc }}-${{ hashFiles('cabal.project.freeze') }}
       restore-keys: |
-        cabal-global-${{ runner.os }}-${{ inputs.ghc }}-
+        cabal-global-${{ inputs.cache-os }}-${{ inputs.ghc }}-
   - name: Cache dist-newstyle
     uses: actions/cache@v3
     with:
       path: 'dist-newstyle'
       key: |
-        cabal-dist-${{ runner.os }}-${{ inputs.ghc }}-${{ hashFiles('cabal.project.freeze') }}-${{ hashFiles('*.cabal') }}-${{ hashFiles('**/*.hs') }}
+        cabal-dist-${{ inputs.cache-os }}-${{ inputs.ghc }}-${{ hashFiles('cabal.project.freeze') }}-${{ hashFiles('*.cabal') }}-${{ hashFiles('**/*.hs') }}
       restore-keys: |
-        cabal-dist-${{ runner.os }}-${{ inputs.ghc }}-${{ hashFiles('cabal.project.freeze', 'cabal-${{runner.os}}.project') }}-${{ hashFiles('*.cabal') }}-
-        cabal-dist-${{ runner.os }}-${{ inputs.ghc }}-${{ hashFiles('cabal.project.freeze', 'cabal-${{runner.os}}.project') }}-
-        cabal-dist-${{ runner.os }}-${{ inputs.ghc }}-
+        cabal-dist-${{ inputs.cache-os }}-${{ inputs.ghc }}-${{ hashFiles('cabal.project.freeze', 'cabal-${{runner.os}}.project') }}-${{ hashFiles('*.cabal') }}-
+        cabal-dist-${{ inputs.cache-os }}-${{ inputs.ghc }}-${{ hashFiles('cabal.project.freeze', 'cabal-${{runner.os}}.project') }}-
+        cabal-dist-${{ inputs.cache-os }}-${{ inputs.ghc }}-
   - name: "cabal v2-update"
     shell: bash
     run: >
