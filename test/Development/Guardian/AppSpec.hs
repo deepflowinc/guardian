@@ -42,7 +42,8 @@ customCases =
           $ withCurrentDir
             ([reldir|data|] </> [reldir|only-custom-cabal-plan|])
           $ do
-            runSimpleApp $ proc "cabal" ["update"] runProcess_
+            runSimpleApp $ proc "cabal" ["v2-update"] runProcess_
+            runSimpleApp $ proc "cabal" ["v2-configure"] runProcess_
             successfully_ $
               mainWith ["custom"]
       , testCase "works with graphmod" $
