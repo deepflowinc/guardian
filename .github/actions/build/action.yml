@@ -12,10 +12,6 @@ inputs:
 
 runs:
   using: composite
-  env:
-    cabal: "cabal --project-file=${{inputs.cabal-project}}"
-    bin-artifacts: "${{ github.workspace }}/bin-artifacts"
-    artifact-name: "bins-${{ runner.os }}"
   steps:
   - name: Installs pkg-config (macOS)
     if: ${{ runner.os == 'macOS' }}
@@ -47,12 +43,18 @@ runs:
         cabal-dist-${{ runner.os }}-${{ inputs.ghc }}-
   - name: "cabal v2-update"
     shell: bash
-    run: |
-      ${{ env.cabal }} v2-update 'hackage.haskell.org,2023-02-13T02:00:06Z'
+    run: >
+      cabal --project-file=${{inputs.cabal-project}}
+      v2-update 'hackage.haskell.org,2023-02-13T02:00:06Z'
   - name: "Build"
     shell: bash
-    run: '${{ env.cabal }} v2-build --enable-tests'
+    run: >
+      cabal --project-file=${{inputs.cabal-project}}
+      v2-build --enable-tests
   - name: 'Collect binaries'
+    env:
+      bin-artifacts: "${{ github.workspace }}/bin-artifacts"
+      artifact-name: "bins-${{ runner.os }}"
     shell: bash
     run: |
       set -euxo pipefail
@@ -68,6 +70,9 @@ runs:
         cp "${FILE}" "${{env.bin-artifacts}}/"
       done
   - uses: actions/upload-artifact@v3
+    env:
+      bin-artifacts: "${{ github.workspace }}/bin-artifacts"
+      artifact-name: "bins-${{ runner.os }}"
     name: Upload Binary Artifacts
     with:
       name: ${{ env.artifact-name }}
