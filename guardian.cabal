@@ -60,6 +60,7 @@ library
       Development.Guardian.Graph.Adapter.Stack.Types
       Development.Guardian.Graph.Adapter.Types
       Development.Guardian.Types
+      Text.Pattern
   other-modules:
       Paths_guardian
   autogen-modules:
@@ -71,6 +72,7 @@ library
       aeson
     , algebraic-graphs
     , base >=4.7 && <5
+    , bytestring-trie
     , case-insensitive
     , containers
     , dlist
@@ -84,6 +86,7 @@ library
     , parsec
     , path
     , path-io
+    , regex-applicative-text
     , rio
     , semigroups
     , template-haskell

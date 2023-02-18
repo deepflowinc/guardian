@@ -1,3 +1,5 @@
+wildcards: true
+
 domains:
   app:
     depends_on: [app_impl]
@@ -9,6 +11,7 @@ domains:
     - Development.Guardian.Constants
     - Development.Guardian.Types
     - Development.Guardian.Flags
+    - Text.Pattern
   adapter-base:
     depends_on: [infra]
     packages:
@@ -18,16 +21,12 @@ domains:
     depends_on: [adapter-base]
     packages:
     - Development.Guardian.Graph.Adapter.Cabal
-    - Development.Guardian.Graph.Adapter.Cabal.Disabled
-    - Development.Guardian.Graph.Adapter.Cabal.Enabled
-    - Development.Guardian.Graph.Adapter.Cabal.Types
+    - Development.Guardian.Graph.Adapter.Cabal.*
   adapter-stack:
     depends_on: [adapter-base]
     packages:
     - Development.Guardian.Graph.Adapter.Stack
-    - Development.Guardian.Graph.Adapter.Stack.Types
-    - Development.Guardian.Graph.Adapter.Stack.Enabled
-    - Development.Guardian.Graph.Adapter.Stack.Disabled
+    - Development.Guardian.Graph.Adapter.Stack.*
   adapter-custom:
     depends_on: [adapter-base]
     packages:

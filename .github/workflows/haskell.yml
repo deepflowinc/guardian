@@ -179,6 +179,9 @@ jobs:
         cabal install graphmod
         mkdir -p ~/.local/bin
         echo "${HOME}/.local/bin" >> "${GITHUB_PATH}"
+    - name: Intall cabal-plan (Linux)
+      if: ${{ matrix.os == 'ubuntu' }}
+      run: |
         curl --location 'https://github.com/haskell-hvr/cabal-plan/releases/download/v0.6.2.0/cabal-plan-0.6.2.0-x86_64-linux.xz' | unxz > ~/.local/bin/cabal-plan
         chmod +x ~/.local/bin/cabal-plan
     - name: Run tests
@@ -214,7 +217,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
     - name: Workaround runner image issue
-      if: ${{ matrix.os == 'Linux' }}
+      if: ${{ runner.os == 'Linux' }}
       # https://github.com/actions/runner-images/issues/7061
       run: sudo chown -R $USER /usr/local/.ghcup
     - name: Setup Haskell
@@ -240,6 +243,10 @@ jobs:
     - name: Creates Tarball
       run: cabal sdist
     - name: Upload to Hackage
+      if: >
+        github.event_name == 'push'
+        &&
+        startsWith(github.ref, 'refs/tags/v')
       uses: haskell-actions/hackage-publish@v1
       with:
         hackageToken: ${{ secrets.HACKAGE_ACCESS_TOKEN }}

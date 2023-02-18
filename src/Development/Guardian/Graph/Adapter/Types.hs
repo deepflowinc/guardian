@@ -25,9 +25,7 @@ data StandardAdapters = Stack | Cabal | Custom
 data family CustomPackageOptions backend
 
 newtype PackageBuildParser backend = PackageBuildParser
-  { withTargetPath ::
-      Path Abs Dir ->
-      PackageGraphOptions backend
+  { withTargetPath :: Path Abs Dir -> PackageGraphOptions backend
   }
 
 instance

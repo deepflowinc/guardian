@@ -14,6 +14,7 @@ module Development.Guardian.App (
   buildInfoQ,
 ) where
 
+import qualified Algebra.Graph as G
 import Control.Applicative ((<**>))
 import qualified Data.Aeson as J
 import Data.Foldable.WithIndex
@@ -159,7 +160,7 @@ defaultMainWith buildInfo args = do
   targ <- maybe getCurrentDir canonicalizePath target
   logInfo $ "Using configuration: " <> fromString (fromRelFile config)
   yaml <- Y.decodeFileThrow (fromAbsFile $ targ </> config)
-  doms <- either throwString pure $ eitherResult $ J.fromJSON yaml
+  domsCfg <- either throwString pure $ eitherResult $ J.fromJSON yaml
 
   mode' <- maybe (detectAdapterThrow yaml targ) pure mode
   logInfo $
@@ -183,6 +184,11 @@ defaultMainWith buildInfo args = do
         either throwString (Custom.buildPackageGraph . flip withTargetPath targ) $
           eitherResult $
             J.fromJSON yaml
+  let DomainResult doms mwarns = resolveDomainName domsCfg pkgGraph
+  forM_ mwarns $ \warns -> do
+    logWarn $ "* " <> displayShow (length warns) <> " warnings during pattern expansion:"
+    logWarn $ "Available entities: " <> displayShow (G.vertexList pkgGraph)
+    mapM_ (logWarn . fromString) warns
   reportPackageGraphValidation doms pkgGraph
 
 reportPackageGraphValidation ::
