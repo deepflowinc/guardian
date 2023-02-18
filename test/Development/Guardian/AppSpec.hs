@@ -45,7 +45,7 @@ customCases =
             ([reldir|data|] </> [reldir|only-custom-cabal-plan|])
           $ do
             runSimpleApp $ proc "cabal" ["v2-update"] runProcess_
-            runSimpleApp $ proc "cabal" ["v2-build", "--dry-run"] runProcess_
+            runSimpleApp $ proc "cabal" ["v2-build", "--dry-run", "all"] runProcess_
             successfully_ $
               mainWith ["custom"]
       , testConditional "graphmod" testGraphmod $
