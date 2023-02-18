@@ -9,10 +9,6 @@ inputs:
     required: false
     description: cabal.project file
     default: 'cabal-${{ runner.os }}.project'
-  cache-os:
-    required: false
-    description: os in cache key
-    default: '${{runner.os}}'
 
 runs:
   using: composite
@@ -26,25 +22,25 @@ runs:
     with:
       ghc-version: ${{ inputs.ghc }}
       cabal-version: 3.8.1.0
-      enable-stack: false
+      install-stack: false
   - name: Cache Global Cabal
     uses: actions/cache@v3
     with:
       path: '~/.cabal/store'
       key: |
-        cabal-global-${{ inputs.cache-os }}-${{ inputs.ghc }}-${{ hashFiles('cabal.project.freeze') }}
+        cabal-global-${{ runner.os }}-${{ inputs.ghc }}-${{ hashFiles('cabal.project.freeze') }}
       restore-keys: |
-        cabal-global-${{ inputs.cache-os }}-${{ inputs.ghc }}-
+        cabal-global-${{ runner.os }}-${{ inputs.ghc }}-
   - name: Cache dist-newstyle
     uses: actions/cache@v3
     with:
       path: 'dist-newstyle'
       key: |
-        cabal-dist-${{ inputs.cache-os }}-${{ inputs.ghc }}-${{ hashFiles('cabal.project.freeze') }}-${{ hashFiles('*.cabal') }}-${{ hashFiles('**/*.hs') }}
+        cabal-dist-${{ runner.os }}-${{ inputs.ghc }}-${{ hashFiles('cabal.project.freeze') }}-${{ hashFiles('*.cabal') }}-${{ hashFiles('**/*.hs') }}
       restore-keys: |
-        cabal-dist-${{ inputs.cache-os }}-${{ inputs.ghc }}-${{ hashFiles('cabal.project.freeze', 'cabal-${{runner.os}}.project') }}-${{ hashFiles('*.cabal') }}-
-        cabal-dist-${{ inputs.cache-os }}-${{ inputs.ghc }}-${{ hashFiles('cabal.project.freeze', 'cabal-${{runner.os}}.project') }}-
-        cabal-dist-${{ inputs.cache-os }}-${{ inputs.ghc }}-
+        cabal-dist-${{ runner.os }}-${{ inputs.ghc }}-${{ hashFiles('cabal.project.freeze', 'cabal-${{runner.os}}.project') }}-${{ hashFiles('*.cabal') }}-
+        cabal-dist-${{ runner.os }}-${{ inputs.ghc }}-${{ hashFiles('cabal.project.freeze', 'cabal-${{runner.os}}.project') }}-
+        cabal-dist-${{ runner.os }}-${{ inputs.ghc }}-
   - name: "cabal v2-update"
     shell: bash
     run: >

@@ -81,8 +81,6 @@ jobs:
       uses: actions/checkout@v3
     - name: Build
       uses: ./.github/actions/build
-      with:
-        cache-os: ubuntu
 
   test-macOS:
     name: Test (macOS)
