@@ -73,7 +73,7 @@ jobs:
         fetch-depth: 0
     - name: Sets zlib pkg
       run: |
-        echo $'export PKG_CONFIG_PATH=/usr/local/opt/zlib/lib/pkgconfig:${PKG_CONFIG_PATH}' >> "${GITHUB_ENV}"
+        echo $'PKG_CONFIG_PATH=/usr/local/opt/zlib/lib/pkgconfig:${PKG_CONFIG_PATH}' >> "${GITHUB_ENV}"
     - name: Setup Haskell
       uses: haskell/actions/setup@v2
       with:
