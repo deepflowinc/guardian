@@ -73,6 +73,7 @@ jobs:
         fetch-depth: 0
     - name: Sets zlib pkg
       run: |
+        brew install pkg-config
         pkg-config zlib
         echo "PKG_CONFIG_PATH=/usr/local/opt/zlib/lib/pkgconfig:${PKG_CONFIG_PATH}" >> "${GITHUB_ENV}"
     - name: Setup Haskell
