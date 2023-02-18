@@ -32,6 +32,7 @@ library
       Development.Guardian.Constants
       Development.Guardian.Graph
       Development.Guardian.Graph.Adapter.Cabal
+      Development.Guardian.Graph.Adapter.Custom
       Development.Guardian.Graph.Adapter.Detection
       Development.Guardian.Graph.Adapter.Stack
       Development.Guardian.Graph.Adapter.Types
@@ -51,6 +52,7 @@ library
     , array
     , base >=4.7 && <5
     , cabal-install >=3.8
+    , case-insensitive
     , containers
     , dlist
     , generic-lens
@@ -58,8 +60,10 @@ library
     , hashable
     , indexed-traversable
     , indexed-traversable-instances
+    , language-dot
     , microlens
     , optparse-applicative
+    , parsec
     , path
     , path-io
     , rio
@@ -69,6 +73,7 @@ library
     , template-haskell
     , text
     , transformers
+    , typed-process
     , unordered-containers
     , validation-selective
     , vector

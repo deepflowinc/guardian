@@ -29,7 +29,27 @@ fakeBuildInfo = BuildInfo {versionString = showVersion version, gitInfo = Nothin
 test_defaultMainWith :: TestTree
 test_defaultMainWith =
   testGroup "defaultMainWith" $
-    concreteAdapterTests : stackCases ++ cabalCases ++ autoCases
+    concreteAdapterTests : stackCases ++ cabalCases ++ autoCases ++ customCases
+
+customCases :: [TestTree]
+customCases =
+  [ testGroup
+      "custom adapter"
+      [ testCase "works with cabal-plan dot"
+          $ withCurrentDir
+            ([reldir|data|] </> [reldir|only-custom-cabal-plan|])
+          $ successfully_
+          $ mainWith ["custom"]
+      , testCase "works with graphmod" $
+          successfully_ $
+            mainWith ["custom", "-c", "dependency-domains-graphmod.yaml"]
+      , testCase "works with stack dot"
+          $ withCurrentDir
+            ([reldir|data|] </> [reldir|only-stack|])
+          $ successfully_
+          $ mainWith ["custom", "-c", "dependency-domains-stack-dot.yaml"]
+      ]
+  ]
 
 stackCases :: [TestTree]
 stackCases =
@@ -101,7 +121,7 @@ autoCases =
               mainWith ["auto"] `shouldThrow` (== NoCustomConfigSpecified)
               step "Abmiguous Directory & Config wit both custom sections"
               mainWith ["auto", "-c", "dependency-domains-ambiguous.yaml"]
-                `shouldThrow` (== BothCabalAndStackSectionsPresentInConfigYaml)
+                `shouldThrow` (== MultipleAdapterConfigFound)
       ]
   ]
 

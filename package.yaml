@@ -37,6 +37,7 @@ library:
   - Cabal
   - Cabal-syntax
   - cabal-install >= 3.8
+  - case-insensitive
   - containers
   - dlist
   - generic-lens
@@ -44,8 +45,10 @@ library:
   - hashable
   - indexed-traversable
   - indexed-traversable-instances
+  - language-dot
   - microlens
   - optparse-applicative
+  - parsec
   - path
   - path-io
   - rio
@@ -54,6 +57,7 @@ library:
   - stack >= 2.9
   - template-haskell
   - transformers
+  - typed-process
   - unordered-containers
   - validation-selective
   - vector

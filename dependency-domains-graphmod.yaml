@@ -1,0 +1,46 @@
+domains:
+  app:
+    depends_on: [app_impl]
+    packages:
+    - app.Main
+  infra:
+    depends_on: []
+    packages:
+    - Development.Guardian.Constants
+    - Development.Guardian.Types
+  adapter-base:
+    depends_on: [infra]
+    packages:
+    - Development.Guardian.Graph.Adapter.Types
+  ## Adapters
+  adapter-cabal:
+    depends_on: [adapter-base]
+    packages:
+    - Development.Guardian.Graph.Adapter.Cabal
+  adapter-stack:
+    depends_on: [adapter-base]
+    packages:
+    - Development.Guardian.Graph.Adapter.Stack
+  adapter-custom:
+    depends_on: [adapter-base]
+    packages:
+    - Development.Guardian.Graph.Adapter.Custom
+  adapters:
+    depends_on: [adapter-cabal, adapter-stack, adapter-custom]
+    packages:
+    - Development.Guardian.Graph.Adapter.Detection
+  logic:
+    depends_on: [infra]
+    packages:
+    - Development.Guardian.Graph
+  app_impl:
+    depends_on: [adapters, logic]
+    packages:
+    - Development.Guardian.App
+  
+components:
+  tests: true
+  benchmarks: false
+
+custom:
+  shell: graphmod --no-cluster 2>/dev/null

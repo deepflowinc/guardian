@@ -1,0 +1,16 @@
+name: B1
+
+dependencies:
+- base
+
+library:
+  source-dirs: src
+  dependencies:
+  - C
+
+tests:
+  A1-test:
+    source-dirs: test
+    dependencies:
+    - B1
+    main: test.hs

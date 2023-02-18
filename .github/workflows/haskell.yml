@@ -40,6 +40,21 @@ jobs:
             test/**/*.hs-boot
             test/**/*.lhs
 
+  cabal-check:
+    name: Cabal Check
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Workaround runner image issue
+      if: ${{ runner.os == 'Linux' }}
+      # https://github.com/actions/runner-images/issues/7061
+      run: sudo chown -R "${USER}" /usr/local/.ghcup
+    - uses: haskell/actions/setup@v2
+      with:
+        cabal-version: 3.8.1.0
+        ghc-version: 9.0.2
+    - run: cabal check
+
   build-macOS:
     name: Build (macOS)
     strategy:
@@ -196,8 +211,16 @@ jobs:
       id: download
       with:
         name: ${{ env.artifact-name }}
+    - uses: haskell/actions/setup@v2
+      with:
+        ghc-version: 9.0.2
+        cabal-version: 3.8.1.0
+        stack-version: 2.9.3
     - name: Setup permission
       run: 'chmod +x "${{steps.download.outputs.download-path}}/guardian-test"'
+    - name: Installs test tool dependencies
+      run: |
+        cabal install graphmod cabal-plan
     - name: Run tests
       run: |
         ${{steps.download.outputs.download-path}}/guardian-test
@@ -222,6 +245,18 @@ jobs:
         name: ${{ env.artifact-name }}
     - name: Setup permission
       run: 'chmod +x "${{steps.download.outputs.download-path}}/guardian-test"'
+    - name: Workaround runner image issue
+      if: ${{ runner.os == 'Linux' }}
+      # https://github.com/actions/runner-images/issues/7061
+      run: sudo chown -R "${USER}" /usr/local/.ghcup
+    - uses: haskell/actions/setup@v2
+      with:
+        ghc-version: 9.0.2
+        cabal-version: 3.8.1.0
+        stack-version: 2.9.3
+    - name: Installs test tool dependencies
+      run: |
+        cabal install graphmod cabal-plan
     - name: Run tests
       run: |
         ${{steps.download.outputs.download-path}}/guardian-test

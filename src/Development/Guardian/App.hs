@@ -28,6 +28,7 @@ import qualified Data.Yaml as Y
 import Development.Guardian.Constants (configFileName)
 import Development.Guardian.Graph
 import qualified Development.Guardian.Graph.Adapter.Cabal as Cabal
+import qualified Development.Guardian.Graph.Adapter.Custom as Custom
 import Development.Guardian.Graph.Adapter.Detection (detectAdapterThrow)
 import qualified Development.Guardian.Graph.Adapter.Stack as Stack
 import Development.Guardian.Graph.Adapter.Types
@@ -107,6 +108,11 @@ optsPI BuildInfo {..} = Opts.info (p <**> Opts.helper <**> versions) mempty
                 ( Opts.info (inP $ Just Cabal) $
                     Opts.progDesc "Defends borders against cabal.project"
                 )
+            , Opts.command
+                "custom"
+                ( Opts.info (inP $ Just Custom) $
+                    Opts.progDesc "Defends borders with a custom adapter"
+                )
             ]
         )
 
@@ -156,6 +162,11 @@ defaultMainWith buildInfo args = do
     Cabal ->
       liftIO $
         either throwString (Cabal.buildPackageGraph . flip withTargetPath targ) $
+          eitherResult $
+            J.fromJSON yaml
+    Custom ->
+      liftIO $
+        either throwString (Custom.buildPackageGraph . flip withTargetPath targ) $
           eitherResult $
             J.fromJSON yaml
   reportPackageGraphValidation doms pkgGraph
