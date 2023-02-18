@@ -13,14 +13,17 @@ import qualified Data.Text.Lazy as LT
 import qualified Data.Text.Lazy.Encoding as LT
 import Data.Version (showVersion)
 import Development.Guardian.App
+import Development.Guardian.Flags (cabalEnabled, stackEnabled)
 import Development.Guardian.Graph.Adapter.Detection
 import GHC.IO.Exception (ExitCode (..))
 import Path
 import Path.IO
 import Paths_guardian (version)
-import RIO (logOptionsMemory, mkSimpleApp, readIORef, runRIO, withLogFunc)
+import RIO (logOptionsMemory, mkSimpleApp, readIORef, runRIO, runSimpleApp, withLogFunc)
 import qualified RIO.ByteString.Lazy as LBS
+import RIO.Process (proc, runProcess_)
 import Test.Tasty
+import Test.Tasty.ExpectedFailure (ignoreTestBecause)
 import Test.Tasty.HUnit
 
 fakeBuildInfo :: BuildInfo
@@ -38,8 +41,10 @@ customCases =
       [ testCase "works with cabal-plan dot"
           $ withCurrentDir
             ([reldir|data|] </> [reldir|only-custom-cabal-plan|])
-          $ successfully_
-          $ mainWith ["custom"]
+          $ do
+            runSimpleApp $ proc "cabal" ["update"] runProcess_
+            successfully_ $
+              mainWith ["custom"]
       , testCase "works with graphmod" $
           successfully_ $
             mainWith ["custom", "-c", "dependency-domains-graphmod.yaml"]
@@ -53,61 +58,79 @@ customCases =
 
 stackCases :: [TestTree]
 stackCases =
-  [ testGroup
-      "stack-specific options"
-      [ testCase "Respects --stack-yaml"
-          $ withCurrentDir
-            ([reldir|data|] </> [reldir|test-only-dependency|])
-          $ successfully_
-          $ mainWith ["cabal", "-c", "dependency-domains-custom-stack.yaml"]
-      ]
+  [ skipIfStackDisabled $
+      testGroup
+        "stack-specific options"
+        [ testCase "Respects --stack-yaml"
+            $ withCurrentDir
+              ([reldir|data|] </> [reldir|test-only-dependency|])
+            $ successfully_
+            $ mainWith ["cabal", "-c", "dependency-domains-custom-stack.yaml"]
+        ]
   ]
 
 cabalCases :: [TestTree]
 cabalCases =
-  [ testGroup
-      "cabal-specific options"
-      [ testCase "Respects projectFile"
-          $ withCurrentDir
-            ([reldir|data|] </> [reldir|test-only-dependency|])
-          $ successfully_
-          $ mainWith ["cabal", "-c", "dependency-domains-custom-cabal.yaml"]
-      , testCase "Respects update: true"
-          $ withCurrentDir
-            ([reldir|data|] </> [reldir|test-only-dependency|])
-          $ successfully_
-          $ mainWith ["cabal", "-c", "dependency-domains-cabal-update-true.yaml"]
-      , testCase "Respects update: (index-state)"
-          $ withCurrentDir
-            ([reldir|data|] </> [reldir|test-only-dependency|])
-          $ successfully_
-          $ mainWith ["cabal", "-c", "dependency-domains-cabal-update-index.yaml"]
-      ]
+  [ skipIfCabalDisabled $
+      testGroup
+        "cabal-specific options"
+        [ testCase "Respects projectFile"
+            $ withCurrentDir
+              ([reldir|data|] </> [reldir|test-only-dependency|])
+            $ successfully_
+            $ mainWith ["cabal", "-c", "dependency-domains-custom-cabal.yaml"]
+        , testCase "Respects update: true"
+            $ withCurrentDir
+              ([reldir|data|] </> [reldir|test-only-dependency|])
+            $ successfully_
+            $ mainWith ["cabal", "-c", "dependency-domains-cabal-update-true.yaml"]
+        , testCase "Respects update: (index-state)"
+            $ withCurrentDir
+              ([reldir|data|] </> [reldir|test-only-dependency|])
+            $ successfully_
+            $ mainWith ["cabal", "-c", "dependency-domains-cabal-update-index.yaml"]
+        ]
   ]
+
+skipIfCabalDisabled :: TestTree -> TestTree
+skipIfCabalDisabled =
+  if cabalEnabled
+    then id
+    else ignoreTestBecause "cabal adapter is disabled"
+
+skipIfStackDisabled :: TestTree -> TestTree
+skipIfStackDisabled =
+  if stackEnabled
+    then id
+    else ignoreTestBecause "stack adapter is disabled"
 
 autoCases :: [TestTree]
 autoCases =
   [ testGroup
       "Auto detection"
-      [ testCase "Accepts config with cabal section only"
+      [ skipIfCabalDisabled
+          $ testCase "Accepts config with cabal section only"
           $ withCurrentDir
             ([reldir|data|] </> [reldir|test-only-dependency|])
           $ successfully
             (LT.isInfixOf "with backend Cabal" . LT.decodeUtf8)
           $ mainWith ["auto", "-c", "dependency-domains-custom-cabal.yaml"]
-      , testCase "Accepts config with stack section only"
+      , skipIfStackDisabled
+          $ testCase "Accepts config with stack section only"
           $ withCurrentDir
             ([reldir|data|] </> [reldir|test-only-dependency|])
           $ successfully
             (LT.isInfixOf "with backend Stack" . LT.decodeUtf8)
           $ mainWith ["auto", "-c", "dependency-domains-custom-stack.yaml"]
-      , testCase "Accepts unambiguous directory (cabal)"
+      , skipIfCabalDisabled
+          $ testCase "Accepts unambiguous directory (cabal)"
           $ withCurrentDir
             ([reldir|data|] </> [reldir|only-cabal|])
           $ successfully
             (LT.isInfixOf "with backend Cabal" . LT.decodeUtf8)
           $ mainWith ["auto"]
-      , testCase "Accepts unambiguous directory (stack)"
+      , skipIfStackDisabled
+          $ testCase "Accepts unambiguous directory (stack)"
           $ withCurrentDir
             ([reldir|data|] </> [reldir|only-stack|])
           $ successfully
@@ -129,29 +152,33 @@ concreteAdapterTests :: TestTree
 concreteAdapterTests =
   testGroup
     "Concrete adapter behaviours, independent of adapters"
-    [ testGroup
-      backend
-      [ testCase "invalidates test-only-dependency with default config"
-          $ withCurrentDir
-            ([reldir|data|] </> [reldir|test-only-dependency|])
-          $ mainWith [backend] `shouldThrow` (== ExitFailure 1)
-      , testCaseSteps "invalidates test-only-dependency with default config (explicit path argument)" \step -> do
-          step "Absolute dir"
-          dir <- canonicalizePath ([reldir|data|] </> [reldir|test-only-dependency|])
-          mainWith [backend, fromAbsDir dir] `shouldThrow` (== ExitFailure 1)
-          step "Relative dir"
-          let rdir = [reldir|data|] </> [reldir|test-only-dependency|]
-          mainWith [backend, fromRelDir rdir] `shouldThrow` (== ExitFailure 1)
-      , testCaseSteps "accepts non-standard config yaml" $ \step ->
-          withCurrentDir ([reldir|data|] </> [reldir|test-only-dependency|]) $ do
-            step "Accepts  when tests and benchmarks disabled"
-            successfully_ $
-              mainWith [backend, "-c", "dependency-domains-no-tests-benchmarks.yaml"]
-            step "Accepts input with exception rule"
-            successfully (LT.isInfixOf "exceptional rules are used" . LT.decodeUtf8) $
-              mainWith [backend, "-c", "dependency-domains-except-A2-B1.yaml"]
-      ]
-    | backend <- ["cabal", "stack"]
+    [ skipIfDisabled $
+      testGroup
+        backend
+        [ testCase "invalidates test-only-dependency with default config"
+            $ withCurrentDir
+              ([reldir|data|] </> [reldir|test-only-dependency|])
+            $ mainWith [backend] `shouldThrow` (== ExitFailure 1)
+        , testCaseSteps "invalidates test-only-dependency with default config (explicit path argument)" \step -> do
+            step "Absolute dir"
+            dir <- canonicalizePath ([reldir|data|] </> [reldir|test-only-dependency|])
+            mainWith [backend, fromAbsDir dir] `shouldThrow` (== ExitFailure 1)
+            step "Relative dir"
+            let rdir = [reldir|data|] </> [reldir|test-only-dependency|]
+            mainWith [backend, fromRelDir rdir] `shouldThrow` (== ExitFailure 1)
+        , testCaseSteps "accepts non-standard config yaml" $ \step ->
+            withCurrentDir ([reldir|data|] </> [reldir|test-only-dependency|]) $ do
+              step "Accepts  when tests and benchmarks disabled"
+              successfully_ $
+                mainWith [backend, "-c", "dependency-domains-no-tests-benchmarks.yaml"]
+              step "Accepts input with exception rule"
+              successfully (LT.isInfixOf "exceptional rules are used" . LT.decodeUtf8) $
+                mainWith [backend, "-c", "dependency-domains-except-A2-B1.yaml"]
+        ]
+    | (backend, skipIfDisabled) <-
+        [ ("cabal", skipIfCabalDisabled)
+        , ("stack", skipIfStackDisabled)
+        ]
     ]
 
 successfully_ :: HasCallStack => IO (LBS.ByteString, Maybe SomeException) -> IO ()

@@ -26,6 +26,7 @@ import qualified Data.Set as Set
 import Data.Version (Version (..), showVersion)
 import qualified Data.Yaml as Y
 import Development.Guardian.Constants (configFileName)
+import Development.Guardian.Flags
 import Development.Guardian.Graph
 import qualified Development.Guardian.Graph.Adapter.Cabal as Cabal
 import qualified Development.Guardian.Graph.Adapter.Custom as Custom
@@ -62,7 +63,7 @@ buildInfoQ version =
   ||]
 
 optsPI :: BuildInfo -> Opts.ParserInfo Option
-optsPI BuildInfo {..} = Opts.info (p <**> Opts.helper <**> versions) mempty
+optsPI BuildInfo {..} = Opts.info (p <**> Opts.helper <**> versions <**> numericVersion) mempty
   where
     gitRev =
       maybe
@@ -73,7 +74,16 @@ optsPI BuildInfo {..} = Opts.info (p <**> Opts.helper <**> versions) mempty
               <> if giDirty gi then " (dirty)" else ""
         )
         gitInfo
-    verStr = "Guardian Version " <> versionString <> gitRev
+    verStr =
+      "Guardian Version "
+        <> versionString
+        <> gitRev
+        <> " (cabal adapter: "
+        <> show cabalEnabled
+        <> ", stack adapter: "
+        <> show stackEnabled
+        <> ")"
+    numericVersion = Opts.infoOption versionString (Opts.long "numeric-version" <> Opts.short 'V' <> Opts.help "Prints numeric version and exit.")
     versions = Opts.infoOption verStr (Opts.long "version" <> Opts.short 'V' <> Opts.help "Prints version string and exit.")
     inP mode = do
       config <-
@@ -96,24 +106,28 @@ optsPI BuildInfo {..} = Opts.info (p <**> Opts.helper <**> versions) mempty
 
     p =
       Opts.hsubparser
-        ( mconcat
-            [ Opts.command "auto" autoP
-            , Opts.command
-                "stack"
-                ( Opts.info (inP $ Just Stack) $
-                    Opts.progDesc "Defends borders against stack.yaml"
-                )
-            , Opts.command
-                "cabal"
-                ( Opts.info (inP $ Just Cabal) $
-                    Opts.progDesc "Defends borders against cabal.project"
-                )
-            , Opts.command
-                "custom"
-                ( Opts.info (inP $ Just Custom) $
-                    Opts.progDesc "Defends borders with a custom adapter"
-                )
-            ]
+        ( mconcat $
+            [Opts.command "auto" autoP]
+              ++ [ Opts.command
+                  "stack"
+                  ( Opts.info (inP $ Just Stack) $
+                      Opts.progDesc "Defends borders against stack.yaml"
+                  )
+                 | stackEnabled
+                 ]
+              ++ [ Opts.command
+                  "cabal"
+                  ( Opts.info (inP $ Just Cabal) $
+                      Opts.progDesc "Defends borders against cabal.project"
+                  )
+                 | cabalEnabled
+                 ]
+              ++ [ Opts.command
+                    "custom"
+                    ( Opts.info (inP $ Just Custom) $
+                        Opts.progDesc "Defends borders with a custom adapter"
+                    )
+                 ]
         )
 
 parseDirP :: String -> Either String (SomeBase Dir)

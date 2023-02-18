@@ -18,25 +18,30 @@ description:
   Guardian secures your Haskell monorepo package dependency boundary.
   Please read [README.md](https://github.com/deepflowinc/guardian#readme) for more details.
 
+flags:
+  cabal:
+    description: Enables Cabal adapter
+    manual: true
+    default: true
+  stack:
+    description: Enables Cabal adapter
+    manual: true
+    default: true
 
 ghc-options:
 - -Wall
+- -Wunused-packages
 
 data-dir: data
 
 dependencies:
 - base >= 4.7 && < 5
-- text
 
 library:
   source-dirs: src
   dependencies:
   - aeson
   - algebraic-graphs
-  - array
-  - Cabal
-  - Cabal-syntax
-  - cabal-install >= 3.8
   - case-insensitive
   - containers
   - dlist
@@ -46,15 +51,13 @@ library:
   - indexed-traversable
   - indexed-traversable-instances
   - language-dot
-  - microlens
   - optparse-applicative
   - parsec
   - path
   - path-io
   - rio
-  - selective
   - semigroups
-  - stack >= 2.9
+  - text
   - template-haskell
   - transformers
   - typed-process
@@ -62,6 +65,30 @@ library:
   - validation-selective
   - vector
   - yaml
+  when:
+  - condition: flag(cabal)
+    then:
+      dependencies:
+      - cabal-install
+      - Cabal-syntax
+      - Cabal
+      cpp-options: [-DENABLE_CABAL]
+      other-modules:
+      - Development.Guardian.Graph.Adapter.Cabal.Enabled
+    else: 
+      other-modules:
+      - Development.Guardian.Graph.Adapter.Cabal.Disabled
+  - condition: flag(stack)
+    then:
+      dependencies:
+      - stack >= 2.9
+      - Cabal
+      cpp-options: [-DENABLE_STACK]
+      other-modules:
+      - Development.Guardian.Graph.Adapter.Stack.Enabled
+    else: 
+      other-modules:
+      - Development.Guardian.Graph.Adapter.Stack.Disabled
 
 tests:
   guardian-test:
@@ -79,6 +106,7 @@ tests:
     - rio
     - tasty
     - tasty-hunit
+    - tasty-expected-failure
     - text
     - unordered-containers
     - validation-selective

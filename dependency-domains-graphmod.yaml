@@ -8,6 +8,7 @@ domains:
     packages:
     - Development.Guardian.Constants
     - Development.Guardian.Types
+    - Development.Guardian.Flags
   adapter-base:
     depends_on: [infra]
     packages:
@@ -17,10 +18,15 @@ domains:
     depends_on: [adapter-base]
     packages:
     - Development.Guardian.Graph.Adapter.Cabal
+    - Development.Guardian.Graph.Adapter.Cabal.Enabled
+    - Development.Guardian.Graph.Adapter.Cabal.Disabled
   adapter-stack:
     depends_on: [adapter-base]
     packages:
     - Development.Guardian.Graph.Adapter.Stack
+    - Development.Guardian.Graph.Adapter.Stack.Types
+    - Development.Guardian.Graph.Adapter.Stack.Enabled
+    - Development.Guardian.Graph.Adapter.Stack.Disabled
   adapter-custom:
     depends_on: [adapter-base]
     packages:

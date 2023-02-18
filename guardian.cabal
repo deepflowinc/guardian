@@ -26,15 +26,28 @@ source-repository head
   type: git
   location: https://github.com/deepflowinc/guardian
 
+flag cabal
+  description: Enables Cabal adapter
+  manual: True
+  default: True
+
+flag stack
+  description: Enables Cabal adapter
+  manual: True
+  default: True
+
 library
   exposed-modules:
       Development.Guardian.App
       Development.Guardian.Constants
+      Development.Guardian.Flags
       Development.Guardian.Graph
       Development.Guardian.Graph.Adapter.Cabal
+      Development.Guardian.Graph.Adapter.Cabal.Types
       Development.Guardian.Graph.Adapter.Custom
       Development.Guardian.Graph.Adapter.Detection
       Development.Guardian.Graph.Adapter.Stack
+      Development.Guardian.Graph.Adapter.Stack.Types
       Development.Guardian.Graph.Adapter.Types
       Development.Guardian.Types
   other-modules:
@@ -43,15 +56,11 @@ library
       Paths_guardian
   hs-source-dirs:
       src
-  ghc-options: -Wall
+  ghc-options: -Wall -Wunused-packages
   build-depends:
-      Cabal
-    , Cabal-syntax
-    , aeson
+      aeson
     , algebraic-graphs
-    , array
     , base >=4.7 && <5
-    , cabal-install >=3.8
     , case-insensitive
     , containers
     , dlist
@@ -61,15 +70,12 @@ library
     , indexed-traversable
     , indexed-traversable-instances
     , language-dot
-    , microlens
     , optparse-applicative
     , parsec
     , path
     , path-io
     , rio
-    , selective
     , semigroups
-    , stack >=2.9
     , template-haskell
     , text
     , transformers
@@ -79,6 +85,27 @@ library
     , vector
     , yaml
   default-language: Haskell2010
+  if flag(cabal)
+    other-modules:
+        Development.Guardian.Graph.Adapter.Cabal.Enabled
+    cpp-options: -DENABLE_CABAL
+    build-depends:
+        Cabal
+      , Cabal-syntax
+      , cabal-install
+  else
+    other-modules:
+        Development.Guardian.Graph.Adapter.Cabal.Disabled
+  if flag(stack)
+    other-modules:
+        Development.Guardian.Graph.Adapter.Stack.Enabled
+    cpp-options: -DENABLE_STACK
+    build-depends:
+        Cabal
+      , stack >=2.9
+  else
+    other-modules:
+        Development.Guardian.Graph.Adapter.Stack.Disabled
 
 executable guardian
   main-is: Main.hs
@@ -88,11 +115,10 @@ executable guardian
       Paths_guardian
   hs-source-dirs:
       app
-  ghc-options: -Wall
+  ghc-options: -Wall -Wunused-packages
   build-depends:
       base >=4.7 && <5
     , guardian
-    , text
   default-language: Haskell2010
 
 test-suite guardian-test
@@ -109,7 +135,7 @@ test-suite guardian-test
       Paths_guardian
   hs-source-dirs:
       test
-  ghc-options: -Wall
+  ghc-options: -Wall -Wunused-packages
   build-tool-depends:
       tasty-discover:tasty-discover
   build-depends:
@@ -122,6 +148,7 @@ test-suite guardian-test
     , path-io
     , rio
     , tasty
+    , tasty-expected-failure
     , tasty-hunit
     , text
     , unordered-containers
