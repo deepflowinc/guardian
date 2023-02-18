@@ -165,6 +165,9 @@ jobs:
       if: ${{ matrix.os == 'Linux' }}
       # https://github.com/actions/runner-images/issues/7061
       run: sudo chown -R "${USER}" /usr/local/.ghcup
+    - name: Installs pkg-config (macOS)
+      if: ${{ matrix.os == 'macOS' }}
+      run: brew install pkg-config
     - uses: haskell/actions/setup@v2
       with:
         ghc-version: 9.0.2
