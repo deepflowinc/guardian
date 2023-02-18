@@ -173,6 +173,7 @@ jobs:
         install-stack: false
     - name: "cabal update"
       run: |
+        echo "${PKG_CONFIG_PATH}"
         ${{ env.cabal }} v2-update 'hackage.haskell.org,2023-02-13T02:00:06Z'
     - name: Configure
       run: ${{ env.cabal }} v2-configure --enable-tests
