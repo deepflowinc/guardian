@@ -148,7 +148,9 @@ jobs:
         ghc: ['9.0.2']
         image: ['']
         include: 
-        - {os: 'ubuntu', image: 'fpco/alpine-haskell-stack:9.2.5', ghc: '9.0.2'}
+        - os: 'ubuntu'
+          ghc: '9.0.2'
+          image: 'fpco/alpine-haskell-stack:9.2.5'
       fail-fast: false
     runs-on: ${{ matrix.os }}-latest
     steps:
@@ -168,6 +170,7 @@ jobs:
         ghc-version: 9.0.2
         cabal-version: 3.8.1.0
         stack-version: 2.9.3
+    - run: cabal v2-update 'hackage.haskell.org,2023-02-13T02:00:06Z'
     - name: Installs test tool dependencies
       run: |
         cabal install graphmod
