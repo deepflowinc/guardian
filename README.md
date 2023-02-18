@@ -1,5 +1,11 @@
 # guardian - The border guardian for your package dependencies
 
+[![Build & Test](https://github.com/deepflowinc/guardian/actions/workflows/haskell.yml/badge.svg)](https://github.com/deepflowinc/guardian/actions/workflows/haskell.yml)
+![Hackage](https://img.shields.io/hackage/v/guardian)
+
+Guardian enforces dependency boundary constraints and keeps your project dependencies sane.
+Mainly designed to apply to the package dependencies internal of a large Haskell monorepo, but it can also be used with monorepos in other/multi languages or at the level of modules.
+
 - [Introduction - How to keep your monorepo sane](#introduction---how-to-keep-your-monorepo-sane)
   + [Dependency Inversion Principle](#dependency-inversion-principle)
   + [The emergence of Guardian - package dependency domain isolation in practice](#the-emergence-of-guardian---package-dependency-domain-isolation-in-practice)
@@ -13,6 +19,7 @@
     - [Cabal specific settings](#cabal-specific-settings)
     - [Stack specific settings](#stack-specific-settings)
     - [Custom adapter settings](#custom-adapter-settings)
+      + [Current limitation](#current-limitation)
     - [Example Configuration](#example-configuration)
 - [GitHub Actions](#github-actions)
 - [Contribution](#contribution)
