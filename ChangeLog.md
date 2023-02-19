@@ -1,6 +1,6 @@
 # Changelog for guardian
 
-## Unreleased changes
+## 0.5.0.0
 
 - Now guaridan can talk with external program to get a dependency graph!
   + Currently, it supports Dot language as the only input format.
