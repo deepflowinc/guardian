@@ -43,7 +43,7 @@ domains:
     depends_on: [adapters, logic]
     packages:
     - Development.Guardian.App
-  
+
 components:
   tests: true
   benchmarks: false
