@@ -19,15 +19,13 @@ import qualified Data.Aeson as J
 import GHC.Generics (Generic)
 import Path (Abs, Dir, Path)
 
-data StandardAdapters = Stack | Cabal
+data StandardAdapters = Stack | Cabal | Custom
   deriving (Show, Eq, Ord)
 
 data family CustomPackageOptions backend
 
 newtype PackageBuildParser backend = PackageBuildParser
-  { withTargetPath ::
-      Path Abs Dir ->
-      PackageGraphOptions backend
+  { withTargetPath :: Path Abs Dir -> PackageGraphOptions backend
   }
 
 instance

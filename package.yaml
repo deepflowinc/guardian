@@ -1,5 +1,5 @@
 name:                guardian
-version:             0.4.0.0
+version:             0.5.0.0
 license:             BSD-3-Clause
 author:              "DeepFlow, Inc."
 maintainer:          "DeepFlow, Inc."
@@ -18,25 +18,40 @@ description:
   Guardian secures your Haskell monorepo package dependency boundary.
   Please read [README.md](https://github.com/deepflowinc/guardian#readme) for more details.
 
+flags:
+  cabal:
+    description: Enables Cabal adapter
+    manual: true
+    default: true
+  stack:
+    description: Enables Cabal adapter
+    manual: true
+    default: true
+  test-cabal-plan:
+    description: Enables testcases for custom+cabal-plan
+    manual: true
+    default: true
+  test-graphmod:
+    description: Enables testcases for custom+cabal-plan
+    manual: true
+    default: true
 
 ghc-options:
 - -Wall
+- -Wunused-packages
 
 data-dir: data
 
 dependencies:
 - base >= 4.7 && < 5
-- text
 
 library:
   source-dirs: src
   dependencies:
   - aeson
   - algebraic-graphs
-  - array
-  - Cabal
-  - Cabal-syntax
-  - cabal-install >= 3.8
+  - bytestring-trie
+  - case-insensitive
   - containers
   - dlist
   - generic-lens
@@ -44,23 +59,54 @@ library:
   - hashable
   - indexed-traversable
   - indexed-traversable-instances
-  - microlens
+  - language-dot
   - optparse-applicative
+  - parsec
   - path
   - path-io
+  - regex-applicative-text
   - rio
-  - selective
   - semigroups
-  - stack >= 2.9
+  - text
   - template-haskell
   - transformers
+  - typed-process
   - unordered-containers
   - validation-selective
   - vector
   - yaml
+  when:
+  - condition: flag(cabal)
+    then:
+      dependencies:
+      - cabal-install
+      - Cabal-syntax
+      - Cabal
+      cpp-options: [-DENABLE_CABAL]
+      other-modules:
+      - Development.Guardian.Graph.Adapter.Cabal.Enabled
+    else: 
+      other-modules:
+      - Development.Guardian.Graph.Adapter.Cabal.Disabled
+  - condition: flag(stack)
+    then:
+      dependencies:
+      - stack >= 2.9
+      - Cabal
+      cpp-options: [-DENABLE_STACK]
+      other-modules:
+      - Development.Guardian.Graph.Adapter.Stack.Enabled
+    else: 
+      other-modules:
+      - Development.Guardian.Graph.Adapter.Stack.Disabled
 
 tests:
   guardian-test:
+    when:
+    - condition: flag(test-cabal-plan)
+      cpp-options: ["-DTEST_CABAL_PLAN"]
+    - condition: flag(test-graphmod)
+      cpp-options: ["-DTEST_GRAPHMOD"]
     main: Spec.hs
     source-dirs: test
     build-tools:
@@ -75,6 +121,7 @@ tests:
     - rio
     - tasty
     - tasty-hunit
+    - tasty-expected-failure
     - text
     - unordered-containers
     - validation-selective

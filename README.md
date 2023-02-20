@@ -1,6 +1,12 @@
 # guardian - The border guardian for your package dependencies
 
-- [Introduction - How to keep your Haskell monorepo sane](#introduction---how-to-keep-your-haskell-monorepo-sane)
+[![Build & Test](https://github.com/deepflowinc/guardian/actions/workflows/haskell.yml/badge.svg)](https://github.com/deepflowinc/guardian/actions/workflows/haskell.yml)
+![Hackage](https://img.shields.io/hackage/v/guardian)
+
+Guardian enforces dependency boundary constraints and keeps your project dependencies sane.
+Mainly designed to apply to the package dependencies internal of a large Haskell monorepo, but it can also be used with monorepos in other/multi languages or at the level of modules.
+
+- [Introduction - How to keep your monorepo sane](#introduction---how-to-keep-your-monorepo-sane)
   + [Dependency Inversion Principle](#dependency-inversion-principle)
   + [The emergence of Guardian - package dependency domain isolation in practice](#the-emergence-of-guardian---package-dependency-domain-isolation-in-practice)
   + [Summary](#summary)
@@ -12,14 +18,16 @@
     - [Component Section](#component-section)
     - [Cabal specific settings](#cabal-specific-settings)
     - [Stack specific settings](#stack-specific-settings)
+    - [Custom adapter settings](#custom-adapter-settings)
+      + [Current limitation](#current-limitation)
     - [Example Configuration](#example-configuration)
 - [GitHub Actions](#github-actions)
 - [Contribution](#contribution)
 - [Copyright](#copyright)
 
-## Introduction - How to keep your Haskell monorepo sane
+## Introduction - How to keep your monorepo sane
 
-Maintaining a large monorepo consisting of dozens of Haskell packages is not easy.
+Maintaining a large monorepo consisting of dozens of packages is not easy.
 Sometimes, just making sure all packages compile on CI is not enough - to accelerate the development cycle, it is crucial to ensure that changes to the codebase trigger only necessary rebuilds as far as possible.
 
 But enforcing this requirement by hand is not easy.
@@ -292,9 +300,12 @@ Subcommand `auto`, `stack`, `cabal` specifies the _adapter_, i.e. build-system, 
 
 - `stack`: uses Stack (>= 2.9) as an adapter.
 - `cabal`: uses cabal-install (>= 3.8) as an adapter.
-- `auto`: determines adapter based on the directory contents and guardian configuration.
+- `auto`: determines adapter based on the directory contents and guardian configuration. Currently, it chooses an adapter from `stack` or `cabal`.
   + If exactly one of `cabal.project` or `stack.yaml` is found, use the corresponding build system as an adapter.
   + If exactly one of the custom config sections (say, `cabal:` or `stack:`) is found in the config file, use the corresponding build system.
+- `custom`: uses the user-specified external process as an adapter.
+  With this adapter, you can check dependency between arbitrary entities in any language.
+  See the [Custom adapter settings](#custom-adapter-settings) section for more detail.
 
 Note that `guardian` links directly to `stack` and `cabal-install`, so you don't need those binaries.
 Make sure the project configuration is compatible with the above version constraint.
@@ -322,6 +333,7 @@ Guardian configuration file consists of the following top-level sections:
 | Section   | Description |
 | --------- | ----------- |
 | `domains` | **Required**. Definition of Dependency Domains (see [Domain Definition](#domain-definition)) |
+| `wildcards` | _Optional_. If `true`, package name can contain wildcards `*`, which matches arbitrary string (when enabled and you need the literal character `*`, use `\*`). Note that even if this option is set, you CANNOT use `*` in exception rule targets. (Default: `false`) |
 | `components` | _Optional_. Configuration whether track test/benchmark dependencies as well (see [Component Section](#component-section)) |
 | `cabal` | _Optional_. Cabal-specific configurations. (see [Cabal specific settings](#cabal-specific-settings)) |
 | `stack` | _Optional_. Stack-specific configurations. (see [stack specific settings](#stack-specific-settings)) |
@@ -393,7 +405,6 @@ It consists of the following optional fields:
 | `tests` | `Bool` | _Optional_. If `true`, tracks tests (default: `true`). |
 | `benchmarks` | `Bool` | _Optional_. If `true`, tracks benchmarks (default: `true`). |
 
-
 The `component` section itself can be omitted - in such cases, all the tests and benchmarks will be tracked for dependency.
 
 #### Cabal specific settings
@@ -436,6 +447,78 @@ stack:
 ```
 
 If the `stack` section is omitted, the `options` will be treated as empty.
+
+#### Custom adapter settings
+
+This is the most general adapter: it reads a dependency graph from STDOUT of an external process.
+This adapter allows you to enforce dependency boundary constraints for _any entity in any language_, provided that there is an external program that emits dependency graph (currently in [Dot][dot-lang] language).
+
+[dot-lang]: https://graphviz.org/doc/info/lang.html
+
+For example:
+
+- You can write custom shell script to emit a package dependency graph for the build system you use.
+  For example, Bazel provides [the `query --output graph` command][bazel query].
+- You can use [`graphmod`][graphmod] to enforce Haskell *module* dependency domain constraints.
+  See [`./dependency-domains-graphmod.yaml`](./dependency-domains-graphmod.yaml) for such an example.
+
+[graphmod]: https://hackage.haskell.org/package/graphmod
+[bazel query]: https://bazel.build/query/guide
+
+The custom adapter sets the following environmental variables when invoking external process:
+
+| Variable | Description |
+| -------- | ----------- |
+| `GUARDIAN_ROOT_DIR` | The path to the project root to check dependencies |
+| `GUARDIAN_INCLUDE_TESTS` | Set to `1` if `components.tests` is enabeld; otherwise unset. |
+| `GUARDIAN_INCLUDE_BENCHMARKS` | Set to `1` if `components.benchmarks` is enabled; otherwise unset. |
+
+Guardian will parse the standard output of the process as a [Dot][dot-lang] program and regard it as a dependency graph.
+
+You can configure the custom adapter in the `custom` top-level section in the configuration file.
+It has the following fields:
+
+| Field | Type | Description |
+| ----- | ---- | ----------- |
+| `program` | `Path` | _Exactly one of `program` or `shell` must be specified_. Specifies the path to the external program to use as an adapter. Beside the environmental variables mentioned above, it passes the project root as the first argument. The path must be point to an executable file and has the right permission. See also `command`. |
+| `shell` | `String` | _Exactly one of `program` or `shell` must be specified_. You can specify shell script instead of the path to the program. See also `program`. |
+| `ignore_loop` | `Bool` | _Optional_. If `true`, gurdian ignores self-loops in the dependency graph. (default: `false`) |
+
+An example setting with the `shell` field:
+
+```yaml
+custom:
+  shell: |
+    stack dot --no-external --no-include-base 2>/dev/null
+```
+
+An example with the `program` field:
+
+```yaml
+custom:
+  program: "./decode-cabal-plan.sh"
+  ignore_loop: true
+```
+
+with `decode-cabal-plan.sh:`
+
+```sh
+#!/bin/bash
+cabal-plan --hide-builtin --hide-global dot 2>/dev/null \
+  | sed -r 's/:(test|benchmark|exe):[^\"]+//g; s/-[0-9]+(\.[0-9]+)*//g'
+```
+
+An example calling `graphmod`:
+
+```yaml
+custom:
+  shell: graphmod --no-cluster 2>/dev/null # --no-cluster is needed to avoid subgraphs
+```
+
+##### Current limitation
+
+- Only [Dot][dot-lang] format is supported.
+- Custom adapter silently ignores subgraphs in a dot file.
 
 #### Example Configuration
 

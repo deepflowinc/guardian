@@ -5,3 +5,6 @@ optimization: True
 shared: True
 static: False
 allow-newer: stack:Cabal, validation-selective:selective
+
+package guardian
+  flags: -test-cabal-plan

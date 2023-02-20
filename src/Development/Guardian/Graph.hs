@@ -1,5 +1,6 @@
 {-# LANGUAGE ApplicativeDo #-}
 {-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE DerivingVia #-}
@@ -25,39 +26,18 @@ import Data.Bifunctor (Bifunctor)
 import qualified Data.Bifunctor as Bi
 import Data.Coerce (coerce)
 import qualified Data.DList as DL
+import Data.DList.DNonEmpty (DNonEmpty)
 import qualified Data.DList.DNonEmpty as DLNE
 import qualified Data.HashMap.Strict as HM
 import qualified Data.List.NonEmpty as NE
 import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
-import Data.Maybe
+import Data.Monoid (Ap (..))
 import Data.Semigroup.Generic
 import Data.Set (Set)
 import qualified Data.Set as Set
 import qualified Data.Vector as V
-import Development.Guardian.Types (
-  ActualGraph,
-  CheckResult (..),
-  Dependency (..),
-  Diagnostics (Diagnostics, redundantExtraDeps, usedExceptionalRules),
-  Domain (Domain, dependsOn, packages),
-  DomainGraph,
-  DomainGraphError (..),
-  DomainInfo (..),
-  DomainName,
-  Domains (..),
-  Overlayed (Overlayed, getOverlayed),
-  PackageDef (PackageDef, extraDeps, packageName),
-  PackageDic,
-  PackageGraph,
-  PackageName,
-  PackageViolation (
-    CyclicPackageDep,
-    DomainBoundaryViolation,
-    UncoveredPackages
-  ),
-  isEmptyDiagnostics,
- )
+import Development.Guardian.Types
 import GHC.Generics (Generic)
 import Validation
 
@@ -78,7 +58,7 @@ buildRawDomainGraph Domains {..} =
           Overlayed (GC.vertex dom)
             <> maybe mempty (foldMap (Overlayed . GC.edge dom)) dependsOn
       )
-      domains
+      getDomains
 
 toDomainGraph :: Domains -> Validation (NE.NonEmpty DomainGraphError) DomainGraph
 toDomainGraph doms =
@@ -108,7 +88,7 @@ detectPackageOverlaps Domains {..}
                   )
                   . packages
             )
-            domains
+            getDomains
 
 newtype CatMap k v = CatMap {getCatMap :: Map k v}
 
@@ -138,7 +118,7 @@ buildPackageDic =
           map (\PackageDef {..} -> (packageName, (domName, extraDeps))) $
             V.toList packages
     )
-    . domains
+    . getDomains
 
 matches :: PackageDic -> Dependency -> PackageName -> Bool
 matches pkgDic (DomainDep dn) pkg =
@@ -171,50 +151,64 @@ instance Bifunctor ActualGraphs where
 buildActualGraphs ::
   PackageDic ->
   PackageGraph ->
-  ActualGraphs ActualGraph (Map PackageName (Set Dependency))
+  Validation
+    (DNonEmpty PackageViolation)
+    (ActualGraphs ActualGraph (Map PackageName (Set Dependency)))
 buildActualGraphs pkgDic =
-  Bi.bimap
-    (Bi.first DL.toList . getLOverlayed)
-    (Map.filter (not . Set.null) . getCatMap)
-    . foldMap
-      ( \e@(src, dst) ->
-          let (srcDomain, srcExcept) =
-                fromMaybe (error $ "src, not found: " <> show (src, pkgDic)) $
+  let pkgs = Map.keys pkgDic
+   in fmap
+        ( Bi.bimap
+            (Bi.first DL.toList . getLOverlayed)
+            (Map.filter (not . Set.null) . getCatMap)
+        )
+        . getAp
+        . foldMap
+          ( \e@(src, dst) -> Ap $ do
+              src' <-
+                maybe (failed $ OrphanPackage src pkgs) Success $
                   Map.lookup src pkgDic
-              (dstDomain, _) =
-                fromMaybe (error $ "dst, not found: " <> show (dst, pkgDic)) $
+
+              (dstDomain, _) <-
+                maybe (failed $ OrphanPackage dst pkgs) Success $
                   Map.lookup dst pkgDic
-              aGraph = LOverlayed $ LG.edge (DL.singleton e) srcDomain dstDomain
-              excepts = Set.fromList $ V.toList $ V.filter (flip (matches pkgDic) dst) srcExcept
-           in if Set.null excepts
-                then AGs {exceptionGraph = mempty, activatedGraph = aGraph}
-                else AGs {activatedGraph = mempty, exceptionGraph = CatMap $ Map.singleton src excepts}
-      )
-    . G.edgeList
+
+              pure $
+                let (srcDomain, srcExcept) = src'
+                    aGraph = LOverlayed $ LG.edge (DL.singleton e) srcDomain dstDomain
+                    excepts = Set.fromList $ V.toList $ V.filter (flip (matches pkgDic) dst) srcExcept
+                 in if Set.null excepts
+                      then AGs {exceptionGraph = mempty, activatedGraph = aGraph}
+                      else AGs {activatedGraph = mempty, exceptionGraph = CatMap $ Map.singleton src excepts}
+          )
+        . G.edgeList
+
+failed :: e -> Validation (DNonEmpty e) a
+failed = Failure . pure
 
 validatePackageGraph ::
   DomainInfo -> PackageGraph -> Validation (NE.NonEmpty PackageViolation) CheckResult
 validatePackageGraph DomainInfo {..} pg =
   Bi.first DLNE.toNonEmpty $
-    resl
-      <$ ( case Bi.first DLNE.singleton (detectPackageCycle pg) of
-            f@Failure {} -> f
-            Success {} ->
-              Bi.first DLNE.singleton (coversAllPackages packageDic pg)
-                <* satisfiesDomainGraph domainGraph activatedGraph
-         )
-  where
-    AGs {..} = buildActualGraphs packageDic pg
-    redundantExtras = findRedundantExtraDeps packageDic pg
-    diags =
-      Diagnostics
-        { redundantExtraDeps =
-            Set.fromList . V.toList <$> redundantExtras
-        , usedExceptionalRules = exceptionGraph
-        }
-    resl
-      | isEmptyDiagnostics diags = Ok
-      | otherwise = OkWithDiagnostics diags
+    case buildActualGraphs packageDic pg of
+      Failure e -> Failure e
+      Success AGs {..} ->
+        let redundantExtras = findRedundantExtraDeps packageDic pg
+            diags =
+              Diagnostics
+                { redundantExtraDeps =
+                    Set.fromList . V.toList <$> redundantExtras
+                , usedExceptionalRules = exceptionGraph
+                }
+            resl
+              | isEmptyDiagnostics diags = Ok
+              | otherwise = OkWithDiagnostics diags
+         in resl
+              <$ ( case Bi.first DLNE.singleton (detectPackageCycle pg) of
+                    f@Failure {} -> f
+                    Success {} ->
+                      Bi.first DLNE.singleton (coversAllPackages packageDic pg)
+                        <* satisfiesDomainGraph domainGraph activatedGraph
+                 )
 
 detectPackageCycle ::
   PackageGraph -> Validation PackageViolation ()

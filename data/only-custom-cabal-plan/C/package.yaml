@@ -1,0 +1,7 @@
+name: C
+
+dependencies:
+- base
+
+library:
+  source-dirs: src

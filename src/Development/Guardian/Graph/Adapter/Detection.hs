@@ -23,7 +23,7 @@ import Path.Posix (Dir)
 import RIO
 
 data DetectionFailure
-  = BothCabalAndStackSectionsPresentInConfigYaml
+  = MultipleAdapterConfigFound
   | BothCabalProjectAndStackYamlFound
   | NeitherCabalProjectNorStackYamlFound
   | NoCustomConfigSpecified
@@ -31,8 +31,8 @@ data DetectionFailure
   deriving (Show, Eq, Ord, Generic)
 
 instance Exception DetectionFailure where
-  displayException BothCabalAndStackSectionsPresentInConfigYaml =
-    "Could not determine adapter: dependency-domain.yml contains both cabal and stack configuration"
+  displayException MultipleAdapterConfigFound =
+    "Could not determine adapter: dependency-domain.yml contains multiple adapter configs"
   displayException BothCabalProjectAndStackYamlFound =
     "Could not determine adapter: Both cabal.project and stack.yaml found"
   displayException NeitherCabalProjectNorStackYamlFound =
@@ -89,7 +89,7 @@ detectFromDomainConfig val =
       let cabalPresent = AKM.member "cabal" dic
           stackPresent = AKM.member "stack" dic
       if
-          | cabalPresent && stackPresent -> Left BothCabalAndStackSectionsPresentInConfigYaml
+          | cabalPresent && stackPresent -> Left MultipleAdapterConfigFound
           | cabalPresent -> Right Cabal
           | stackPresent -> Right Stack
           | otherwise -> Left NoCustomConfigSpecified

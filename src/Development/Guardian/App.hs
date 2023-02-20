@@ -14,6 +14,7 @@ module Development.Guardian.App (
   buildInfoQ,
 ) where
 
+import qualified Algebra.Graph as G
 import Control.Applicative ((<**>))
 import qualified Data.Aeson as J
 import Data.Foldable.WithIndex
@@ -26,8 +27,10 @@ import qualified Data.Set as Set
 import Data.Version (Version (..), showVersion)
 import qualified Data.Yaml as Y
 import Development.Guardian.Constants (configFileName)
+import Development.Guardian.Flags
 import Development.Guardian.Graph
 import qualified Development.Guardian.Graph.Adapter.Cabal as Cabal
+import qualified Development.Guardian.Graph.Adapter.Custom as Custom
 import Development.Guardian.Graph.Adapter.Detection (detectAdapterThrow)
 import qualified Development.Guardian.Graph.Adapter.Stack as Stack
 import Development.Guardian.Graph.Adapter.Types
@@ -61,7 +64,7 @@ buildInfoQ version =
   ||]
 
 optsPI :: BuildInfo -> Opts.ParserInfo Option
-optsPI BuildInfo {..} = Opts.info (p <**> Opts.helper <**> versions) mempty
+optsPI BuildInfo {..} = Opts.info (p <**> Opts.helper <**> versions <**> numericVersion) mempty
   where
     gitRev =
       maybe
@@ -72,7 +75,16 @@ optsPI BuildInfo {..} = Opts.info (p <**> Opts.helper <**> versions) mempty
               <> if giDirty gi then " (dirty)" else ""
         )
         gitInfo
-    verStr = "Guardian Version " <> versionString <> gitRev
+    verStr =
+      "Guardian Version "
+        <> versionString
+        <> gitRev
+        <> " (cabal adapter: "
+        <> show cabalEnabled
+        <> ", stack adapter: "
+        <> show stackEnabled
+        <> ")"
+    numericVersion = Opts.infoOption versionString (Opts.long "numeric-version" <> Opts.short 'V' <> Opts.help "Prints numeric version and exit.")
     versions = Opts.infoOption verStr (Opts.long "version" <> Opts.short 'V' <> Opts.help "Prints version string and exit.")
     inP mode = do
       config <-
@@ -95,19 +107,28 @@ optsPI BuildInfo {..} = Opts.info (p <**> Opts.helper <**> versions) mempty
 
     p =
       Opts.hsubparser
-        ( mconcat
-            [ Opts.command "auto" autoP
-            , Opts.command
-                "stack"
-                ( Opts.info (inP $ Just Stack) $
-                    Opts.progDesc "Defends borders against stack.yaml"
-                )
-            , Opts.command
-                "cabal"
-                ( Opts.info (inP $ Just Cabal) $
-                    Opts.progDesc "Defends borders against cabal.project"
-                )
-            ]
+        ( mconcat $
+            [Opts.command "auto" autoP]
+              ++ [ Opts.command
+                  "stack"
+                  ( Opts.info (inP $ Just Stack) $
+                      Opts.progDesc "Defends borders against stack.yaml"
+                  )
+                 | stackEnabled
+                 ]
+              ++ [ Opts.command
+                  "cabal"
+                  ( Opts.info (inP $ Just Cabal) $
+                      Opts.progDesc "Defends borders against cabal.project"
+                  )
+                 | cabalEnabled
+                 ]
+              ++ [ Opts.command
+                    "custom"
+                    ( Opts.info (inP $ Just Custom) $
+                        Opts.progDesc "Defends borders with a custom adapter"
+                    )
+                 ]
         )
 
 parseDirP :: String -> Either String (SomeBase Dir)
@@ -139,7 +160,7 @@ defaultMainWith buildInfo args = do
   targ <- maybe getCurrentDir canonicalizePath target
   logInfo $ "Using configuration: " <> fromString (fromRelFile config)
   yaml <- Y.decodeFileThrow (fromAbsFile $ targ </> config)
-  doms <- either throwString pure $ eitherResult $ J.fromJSON yaml
+  domsCfg <- either throwString pure $ eitherResult $ J.fromJSON yaml
 
   mode' <- maybe (detectAdapterThrow yaml targ) pure mode
   logInfo $
@@ -158,6 +179,16 @@ defaultMainWith buildInfo args = do
         either throwString (Cabal.buildPackageGraph . flip withTargetPath targ) $
           eitherResult $
             J.fromJSON yaml
+    Custom ->
+      liftIO $
+        either throwString (Custom.buildPackageGraph . flip withTargetPath targ) $
+          eitherResult $
+            J.fromJSON yaml
+  let DomainResult doms mwarns = resolveDomainName domsCfg pkgGraph
+  forM_ mwarns $ \warns -> do
+    logWarn $ "* " <> displayShow (length warns) <> " warnings during pattern expansion:"
+    logWarn $ "Available entities: " <> displayShow (G.vertexList pkgGraph)
+    mapM_ (logWarn . fromString) warns
   reportPackageGraphValidation doms pkgGraph
 
 reportPackageGraphValidation ::

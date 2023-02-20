@@ -5,7 +5,7 @@ cabal-version: 2.2
 -- see: https://github.com/sol/hpack
 
 name:           guardian
-version:        0.4.0.0
+version:        0.5.0.0
 synopsis:       The border guardian for your package dependencies
 description:    Guardian secures your Haskell monorepo package dependency boundary. Please read [README.md](https://github.com/deepflowinc/guardian#readme) for more details.
 category:       Development
@@ -26,31 +26,54 @@ source-repository head
   type: git
   location: https://github.com/deepflowinc/guardian
 
+flag cabal
+  description: Enables Cabal adapter
+  manual: True
+  default: True
+
+flag stack
+  description: Enables Cabal adapter
+  manual: True
+  default: True
+
+flag test-cabal-plan
+  description: Enables testcases for custom+cabal-plan
+  manual: True
+  default: True
+
+flag test-graphmod
+  description: Enables testcases for custom+cabal-plan
+  manual: True
+  default: True
+
 library
   exposed-modules:
       Development.Guardian.App
       Development.Guardian.Constants
+      Development.Guardian.Flags
       Development.Guardian.Graph
       Development.Guardian.Graph.Adapter.Cabal
+      Development.Guardian.Graph.Adapter.Cabal.Types
+      Development.Guardian.Graph.Adapter.Custom
       Development.Guardian.Graph.Adapter.Detection
       Development.Guardian.Graph.Adapter.Stack
+      Development.Guardian.Graph.Adapter.Stack.Types
       Development.Guardian.Graph.Adapter.Types
       Development.Guardian.Types
+      Text.Pattern
   other-modules:
       Paths_guardian
   autogen-modules:
       Paths_guardian
   hs-source-dirs:
       src
-  ghc-options: -Wall
+  ghc-options: -Wall -Wunused-packages
   build-depends:
-      Cabal
-    , Cabal-syntax
-    , aeson
+      aeson
     , algebraic-graphs
-    , array
     , base >=4.7 && <5
-    , cabal-install >=3.8
+    , bytestring-trie
+    , case-insensitive
     , containers
     , dlist
     , generic-lens
@@ -58,22 +81,44 @@ library
     , hashable
     , indexed-traversable
     , indexed-traversable-instances
-    , microlens
+    , language-dot
     , optparse-applicative
+    , parsec
     , path
     , path-io
+    , regex-applicative-text
     , rio
-    , selective
     , semigroups
-    , stack >=2.9
     , template-haskell
     , text
     , transformers
+    , typed-process
     , unordered-containers
     , validation-selective
     , vector
     , yaml
   default-language: Haskell2010
+  if flag(cabal)
+    other-modules:
+        Development.Guardian.Graph.Adapter.Cabal.Enabled
+    cpp-options: -DENABLE_CABAL
+    build-depends:
+        Cabal
+      , Cabal-syntax
+      , cabal-install
+  else
+    other-modules:
+        Development.Guardian.Graph.Adapter.Cabal.Disabled
+  if flag(stack)
+    other-modules:
+        Development.Guardian.Graph.Adapter.Stack.Enabled
+    cpp-options: -DENABLE_STACK
+    build-depends:
+        Cabal
+      , stack >=2.9
+  else
+    other-modules:
+        Development.Guardian.Graph.Adapter.Stack.Disabled
 
 executable guardian
   main-is: Main.hs
@@ -83,11 +128,10 @@ executable guardian
       Paths_guardian
   hs-source-dirs:
       app
-  ghc-options: -Wall
+  ghc-options: -Wall -Wunused-packages
   build-depends:
       base >=4.7 && <5
     , guardian
-    , text
   default-language: Haskell2010
 
 test-suite guardian-test
@@ -99,12 +143,13 @@ test-suite guardian-test
       Development.Guardian.Graph.Adapter.StackSpec
       Development.Guardian.Graph.Adapter.TestUtils
       Development.Guardian.GraphSpec
+      Development.Guardian.Test.Flags
       Paths_guardian
   autogen-modules:
       Paths_guardian
   hs-source-dirs:
       test
-  ghc-options: -Wall
+  ghc-options: -Wall -Wunused-packages
   build-tool-depends:
       tasty-discover:tasty-discover
   build-depends:
@@ -117,8 +162,13 @@ test-suite guardian-test
     , path-io
     , rio
     , tasty
+    , tasty-expected-failure
     , tasty-hunit
     , text
     , unordered-containers
     , validation-selective
   default-language: Haskell2010
+  if flag(test-cabal-plan)
+    cpp-options: -DTEST_CABAL_PLAN
+  if flag(test-graphmod)
+    cpp-options: -DTEST_GRAPHMOD
