@@ -1,5 +1,6 @@
 # Changelog for guardian
 
+
 ## 0.5.0.0
 
 - Now guaridan can talk with external program to get a dependency graph!
@@ -13,6 +14,7 @@
 - Supports conditional builds: when you build guardian manually, you can disable unnecessary adapters.
   Just turn off `cabal` and/or `stack` flags to disable corresponding adapters.
 - Rework on GitHub Actions.
+- Bumps up Cabal and Stack version. This should address the error when CABAL_DIR is not set to `~/.cabal`.
 
 ## 0.4.0.0
 
