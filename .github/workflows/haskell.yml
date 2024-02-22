@@ -49,10 +49,10 @@ jobs:
       if: ${{ matrix.os == 'Linux' }}
       # https://github.com/actions/runner-images/issues/7061
       run: sudo chown -R "${USER}" /usr/local/.ghcup
-    - uses: haskell/actions/setup@v2
+    - uses: haskell-actions/setup@v2
       with:
-        cabal-version: 3.8.1.0
-        ghc-version: 9.0.2
+        cabal-version: 3.10.2.1
+        ghc-version: 9.6.4
     - run: cabal check
 
   build:
@@ -60,10 +60,10 @@ jobs:
     strategy:
       matrix:
         os: [macOS]
-        ghc: ['9.0.2']
+        ghc: ['9.6.4']
         image: ['']
         include: 
-        - {os: 'ubuntu', ghc: '9.0.2', image: 'fpco/alpine-haskell-stack:9.2.5'}
+        - {os: 'ubuntu', ghc: '9.6.4', image: 'fpco/alpine-haskell-stack:9.2.5'}
       fail-fast: false
     env:
       bin-artifacts: "bin-artifacts"
@@ -86,10 +86,10 @@ jobs:
       run: |
         brew install pkg-config
     - name: Setup Haskell
-      uses: haskell/actions/setup@v2
+      uses: haskell-actions/setup@v2
       with:
         ghc-version: ${{ matrix.ghc }}
-        cabal-version: 3.8.1.0
+        cabal-version: 3.10.2.1
         enable-stack: false
     - name: Cache Global Cabal
       uses: actions/cache@v3
@@ -146,11 +146,11 @@ jobs:
     strategy:
       matrix:
         os: [macOS]
-        ghc: ['9.0.2']
+        ghc: ['9.6.4']
         image: ['']
         include: 
         - os: 'ubuntu'
-          ghc: '9.0.2'
+          ghc: '9.6.4'
           image: 'fpco/alpine-haskell-stack:9.2.5'
       fail-fast: false
     runs-on: ${{ matrix.os }}-latest
@@ -169,10 +169,10 @@ jobs:
     - name: Installs pkg-config (macOS)
       if: ${{ matrix.os == 'macOS' }}
       run: brew install pkg-config
-    - uses: haskell/actions/setup@v2
+    - uses: haskell-actions/setup@v2
       with:
-        ghc-version: 9.0.2
-        cabal-version: 3.8.1.0
+        ghc-version: 9.6.4
+        cabal-version: 3.10.2.1
         stack-version: 2.9.3
     - run: cabal v2-update 'hackage.haskell.org,2023-02-13T02:00:06Z'
     - name: Installs test tool dependencies
@@ -192,7 +192,7 @@ jobs:
   release:
     name: Release
     env:
-      ghc: 9.0.2
+      ghc: 9.6.4
       tag: "${{ github.event.inputs.release_tag }}"
     runs-on: ubuntu-latest
     needs: [build]

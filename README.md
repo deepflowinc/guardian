@@ -583,7 +583,7 @@ Example workflow:
     continue-on-error: true
     steps:
       - uses: actions/checkout@v3
-      - uses: haskell/actions/setup@v2
+      - uses: haskell-actions/setup@v2
         with:
           ghc-version: 9.0.2  # Install needed version of ghc
       - uses: deepflowinc/guardian/action@v0.4.0.0

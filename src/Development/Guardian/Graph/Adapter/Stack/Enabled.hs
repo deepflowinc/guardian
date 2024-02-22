@@ -34,7 +34,8 @@ import Stack.Prelude (RIO, toList, view)
 import qualified Stack.Prelude as Stack
 import Stack.Runners (ShouldReexec (NoReexec), withConfig, withDefaultEnvConfig, withRunnerGlobal)
 import Stack.Types.Build (LocalPackage)
-import Stack.Types.Config (HasBuildConfig, HasSourceMap (sourceMapL))
+import Stack.Types.BuildConfig (HasBuildConfig)
+import Stack.Types.EnvConfig (HasSourceMap (sourceMapL))
 import Stack.Types.Package (LocalPackage (..), Package (..))
 import qualified Stack.Types.Package as Stack
 import Stack.Types.SourceMap (SourceMap (..))
@@ -66,7 +67,7 @@ buildPackageGraph PackageGraphOptions {customOptions = StackOptions {..}, ..} = 
   withCurrentDir targetPath $ do
     let pInfo =
           Opt.info
-            (globalOptsParser (fromAbsDir targetPath) OuterGlobalOpts Nothing <**> helper)
+            (globalOptsParser (fromAbsDir targetPath) OuterGlobalOpts <**> helper)
             mempty
         cliOpts =
           "--skip-ghc-check"
