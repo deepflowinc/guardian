@@ -173,7 +173,7 @@ jobs:
       with:
         ghc-version: 9.6.4
         cabal-version: 3.10.2.1
-        stack-version: 2.15.7
+        stack-version: 2.13.1
         enable-stack: true
     - run: cabal v2-update 'hackage.haskell.org,2023-02-13T02:00:06Z'
     - name: Installs test tool dependencies
