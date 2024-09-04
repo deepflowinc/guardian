@@ -184,6 +184,9 @@ jobs:
     - name: Intall cabal-plan (Linux)
       if: ${{ matrix.os == 'ubuntu' }}
       run: |
+        ls -R "${HOME}/.ghcup"
+        ls -R "${HOME}/.local"
+        which stack
         curl --location 'https://github.com/haskell-hvr/cabal-plan/releases/download/v0.6.2.0/cabal-plan-0.6.2.0-x86_64-linux.xz' | unxz > ~/.local/bin/cabal-plan
         chmod +x ~/.local/bin/cabal-plan
     - name: Run tests
