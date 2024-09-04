@@ -180,6 +180,7 @@ jobs:
         cabal install graphmod
         mkdir -p ~/.local/bin
         echo "${HOME}/.local/bin" >> "${GITHUB_PATH}"
+        echo "${HOME}/.ghcup/bin" >> "${GITHUB_PATH}"
     - name: Intall cabal-plan (Linux)
       if: ${{ matrix.os == 'ubuntu' }}
       run: |
