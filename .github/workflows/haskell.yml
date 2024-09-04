@@ -181,9 +181,10 @@ jobs:
         mkdir -p ~/.local/bin
         echo "${HOME}/.local/bin" >> "${GITHUB_PATH}"
         echo "${HOME}/.ghcup/bin" >> "${GITHUB_PATH}"
-    - name: Inspect environments (macOS)
+    - name: Install Stack and Inspect environments (macOS)
       if: ${{ matrix.os == 'macOS' }}
       run: |
+        ghcup install stack 2.15.7
         echo "PATH=${PATH}"
         ls -R "${HOME}/.ghcup"
         ls -R "${HOME}/.local"
