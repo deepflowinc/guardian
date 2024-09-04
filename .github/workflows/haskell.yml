@@ -134,7 +134,7 @@ jobs:
           echo "COPYING: $(basename "${FILE}") (${FILE})"
           cp "${FILE}" "${{env.bin-artifacts}}/"
         done
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       name: Upload Binary Artifacts
       with:
         name: bins-${{ runner.os }}
@@ -156,7 +156,7 @@ jobs:
     runs-on: ${{ matrix.os }}-latest
     steps:
     - uses: actions/checkout@v3
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       id: download
       with:
         name: bins-${{ runner.os }}
@@ -173,13 +173,15 @@ jobs:
       with:
         ghc-version: 9.6.4
         cabal-version: 3.10.2.1
-        stack-version: 2.9.3
+        stack-version: 2.13.1
+        enable-stack: true
     - run: cabal v2-update 'hackage.haskell.org,2023-02-13T02:00:06Z'
     - name: Installs test tool dependencies
       run: |
         cabal install graphmod
         mkdir -p ~/.local/bin
         echo "${HOME}/.local/bin" >> "${GITHUB_PATH}"
+        echo "${HOME}/.ghcup/bin" >> "${GITHUB_PATH}"
     - name: Intall cabal-plan (Linux)
       if: ${{ matrix.os == 'ubuntu' }}
       run: |
@@ -219,7 +221,7 @@ jobs:
       uses: actions/checkout@v3
     - name: Download Artifact(s)
       id: download
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         path: ${{ github.workspace }}/artifacts
     - name: Check Version
