@@ -20,4 +20,4 @@ components:
 
 custom:
   shell: |
-    stack dot --no-external --no-include-base 2>/dev/null
+    stack dot --no-external --no-include-base
