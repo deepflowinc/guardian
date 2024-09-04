@@ -181,12 +181,17 @@ jobs:
         mkdir -p ~/.local/bin
         echo "${HOME}/.local/bin" >> "${GITHUB_PATH}"
         echo "${HOME}/.ghcup/bin" >> "${GITHUB_PATH}"
-    - name: Intall cabal-plan (Linux)
-      if: ${{ matrix.os == 'ubuntu' }}
+    - name: Inspect environments (macOS)
+      if: ${{ matrix.os == 'macOS' }}
       run: |
+        echo "PATH=${PATH}"
         ls -R "${HOME}/.ghcup"
         ls -R "${HOME}/.local"
         which stack
+        stack --version
+    - name: Intall cabal-plan (Linux)
+      if: ${{ matrix.os == 'ubuntu' }}
+      run: |
         curl --location 'https://github.com/haskell-hvr/cabal-plan/releases/download/v0.6.2.0/cabal-plan-0.6.2.0-x86_64-linux.xz' | unxz > ~/.local/bin/cabal-plan
         chmod +x ~/.local/bin/cabal-plan
     - name: Run tests
