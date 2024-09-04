@@ -182,14 +182,6 @@ jobs:
         mkdir -p ~/.local/bin
         echo "${HOME}/.local/bin" >> "${GITHUB_PATH}"
         echo "${HOME}/.ghcup/bin" >> "${GITHUB_PATH}"
-    - name: Inspect environments (macOS)
-      if: ${{ matrix.os == 'macOS' }}
-      run: |
-        echo "PATH=${PATH}"
-        ls -R "${HOME}/.ghcup"
-        ls -R "${HOME}/.local"
-        which stack
-        stack --version
     - name: Intall cabal-plan (Linux)
       if: ${{ matrix.os == 'ubuntu' }}
       run: |
