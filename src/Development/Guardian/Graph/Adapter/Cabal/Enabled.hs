@@ -2,6 +2,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedLabels #-}
+{-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TypeFamilies #-}
 
@@ -32,7 +33,7 @@ import Distribution.Client.ProjectConfig (ProjectRoot (..))
 import Distribution.Client.ProjectOrchestration (CurrentCommand (..), ProjectBaseContext (..), establishProjectBaseContextWithRoot, withInstallPlan)
 import Distribution.Client.ProjectPlanning (ElaboratedConfiguredPackage (..), elabLocalToProject)
 import Distribution.Package (Package (..), packageName, unPackageName)
-import Distribution.Simple.Flag (Flag (..))
+import Distribution.Simple.Flag (pattern Flag)
 import Distribution.Verbosity (silent)
 import Path
 import RIO ((.~))
